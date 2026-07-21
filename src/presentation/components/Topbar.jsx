@@ -1,6 +1,7 @@
 import { NotificationsNoneRounded, SearchRounded } from "@mui/icons-material";
 import { IconButton } from "@mui/material";
+import styles from "./Topbar.module.css";
 
 export function Topbar() {
-  return <header className="topbar"><label className="search"><SearchRounded /><input placeholder="Toplantı, oda veya kişi ara..." /></label><div className="topbar__actions"><IconButton><NotificationsNoneRounded /></IconButton><span className="divider"/><div className="profile"><span>EY</span><div><b>Ece Yılmaz</b><small>Şirket yöneticisi</small></div><strong>⌄</strong></div></div></header>;
+  return <header className={styles.topbar}><label className={styles.search}><SearchRounded /><input placeholder="Toplantı, oda veya kişi ara..." /></label><div className={styles.actions}><IconButton><NotificationsNoneRounded /></IconButton><span className={styles.divider}/><div className={styles.profile}><span className={styles.avatar}>EY</span><div><b>Ece Yılmaz</b><small>Şirket yöneticisi</small></div><strong>⌄</strong></div></div></header>;
 }
