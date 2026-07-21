@@ -1,0 +1,1 @@
+.form{display:flex;flex-direction:column;gap:16px;padding-top:12px!important}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.grid{grid-template-columns:1fr}}
