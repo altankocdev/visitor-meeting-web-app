@@ -1,0 +1,5 @@
+import { Groups2Outlined, LocationOnOutlined, VideocamOutlined, TvOutlined } from "@mui/icons-material";
+
+export function RoomAvailability({ rooms }) {
+  return <section className="panel rooms-panel"><div className="panel-head"><div><h3>Oda uygunluğu</h3><p>Şu anki kullanılabilirlik durumu</p></div><button className="text-button">Tüm odalar</button></div><div className="room-list">{rooms.map((room) => <article key={room.id}><span className={`room-symbol ${room.available ? "available" : "busy"}`}><span>{room.name.slice(0,2).toUpperCase()}</span></span><div className="room-copy"><div><h4>{room.name}</h4><span className={room.available ? "available-text" : "busy-text"}><i />{room.available ? "Müsait" : "Dolu"}</span></div><p><LocationOnOutlined />{room.location}<span>·</span><Groups2Outlined />{room.capacity} kişi</p><div className="features">{room.features.map((feature) => <small key={feature}>{feature.includes("Video") ? <VideocamOutlined /> : <TvOutlined />}{feature}</small>)}</div></div><button disabled={!room.available}>{room.available ? "Rezerve et" : "14:30'da boş"}</button></article>)}</div></section>;
+}
