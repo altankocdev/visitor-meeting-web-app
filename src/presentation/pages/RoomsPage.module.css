@@ -1,0 +1,283 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+}
+
+.main {
+  width: calc(100% - var(--sidebar-width));
+  min-width: 0;
+  margin-left: var(--sidebar-width);
+}
+
+.content {
+  width: 100%;
+  max-width: 1540px;
+  margin: auto;
+  padding: 29px 32px 42px;
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.head h1 {
+  margin: 8px 0 5px;
+  font: 700 clamp(25px, 2.3vw, 31px) "Manrope", sans-serif;
+  letter-spacing: -0.035em;
+}
+
+.head p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  color: var(--color-deep-blue);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.backButton svg {
+  width: 16px;
+}
+
+.action {
+  height: 43px;
+  flex: 0 0 auto;
+  padding: 0 18px !important;
+  background: linear-gradient(110deg, var(--color-deep-blue), var(--color-blue)) !important;
+}
+
+.directory {
+  display: grid;
+  gap: 14px;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  min-height: 154px;
+  padding: 22px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(135deg, rgba(187, 225, 250, 0.32), transparent 34%),
+    var(--color-surface);
+  box-shadow: var(--shadow-panel);
+}
+
+.busyCard {
+  background: #f8fafb;
+}
+
+.symbol {
+  width: 78px;
+  height: 78px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  color: var(--color-deep-blue);
+  background: linear-gradient(145deg, #e8f5fc, #d6ecf8);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.busyCard .symbol {
+  color: #7d8990;
+  background: #eef1f3;
+}
+
+.cardContent {
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.titleRow h2 {
+  margin: 0;
+  font: 700 22px "Manrope", sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.available,
+.busy {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.available {
+  color: var(--color-success);
+}
+
+.busy {
+  color: #9a7c62;
+}
+
+.available i,
+.busy i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.meta,
+.stats,
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  margin-top: 10px;
+}
+
+.meta span,
+.features span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #627780;
+  font-size: 12px;
+}
+
+.meta svg,
+.features svg {
+  width: 17px;
+  height: 17px;
+}
+
+.stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 25px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: var(--color-deep-blue);
+  background: #e8f5fc;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.stats svg {
+  width: 15px;
+  height: 15px;
+}
+
+.busyCard .stats span {
+  color: #70818b;
+  background: #eef1f3;
+}
+
+.description {
+  max-width: 660px;
+  margin: 12px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.reserveButton {
+  height: 46px;
+  padding: 0 18px;
+  border: 1px solid #b9d8e9;
+  border-radius: var(--radius-md);
+  color: var(--color-deep-blue);
+  background: #f4fbff;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.reserveButton:disabled {
+  border-color: #e2e7e9;
+  color: #89969c;
+  background: #f3f5f6;
+  cursor: default;
+}
+
+@media (max-width: 1250px) {
+  .main {
+    width: calc(100% - 205px);
+    margin-left: 205px;
+  }
+
+  .content {
+    padding-inline: 22px;
+  }
+}
+
+@media (max-width: 900px) {
+  .main {
+    width: calc(100% - var(--sidebar-collapsed-width));
+    margin-left: var(--sidebar-collapsed-width);
+  }
+
+  .content {
+    padding: 24px 18px 36px;
+  }
+
+  .card {
+    grid-template-columns: 66px minmax(0, 1fr);
+  }
+
+  .symbol {
+    width: 66px;
+    height: 66px;
+    border-radius: 18px;
+  }
+
+  .reserveButton {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 700px) {
+  .main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .content {
+    padding: 20px 14px 32px;
+  }
+
+  .head {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .action {
+    align-self: flex-start;
+  }
+
+  .card {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .reserveButton {
+    grid-column: auto;
+  }
+}
