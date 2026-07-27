@@ -7,6 +7,7 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { ReservationsPage } from "./pages/ReservationsPage";
 import { RoomsPage } from "./pages/RoomsPage";
 import { SuperAdminLoginPage } from "./pages/SuperAdminLoginPage";
+import { SuperAdminDashboardPage } from "./pages/SuperAdminDashboardPage";
 
 export function App() {
   return (
@@ -15,6 +16,7 @@ export function App() {
       <Route path="/change-password" element={<ChangePasswordPage />} />
       <Route path="/complete-profile" element={<CompleteProfilePage />} />
       <Route path="/super-admin/login" element={<SuperAdminLoginPage />} />
+      <Route path="/super-admin/dashboard" element={<SuperAdminDashboardPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/reservations" element={<ReservationsPage />} />
