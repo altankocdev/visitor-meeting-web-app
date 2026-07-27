@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 import { CompleteProfilePage } from "./pages/CompleteProfilePage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { DepartmentsPage } from "./pages/DepartmentsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { ReservationsPage } from "./pages/ReservationsPage";
@@ -19,6 +20,7 @@ export function App() {
       <Route path="/super-admin/login" element={<SuperAdminLoginPage />} />
       <Route path="/super-admin/dashboard" element={<SuperAdminDashboardPage />} />
       <Route path="/management/users" element={<UsersPage />} />
+      <Route path="/management/departments" element={<DepartmentsPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/reservations" element={<ReservationsPage />} />

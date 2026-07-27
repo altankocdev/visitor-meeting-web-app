@@ -3,7 +3,7 @@ import { ApartmentRounded, AssessmentOutlined, BadgeOutlined, DashboardRounded, 
 export const superAdminNavigation = [
   { label: "Genel bakış", icon: DashboardRounded, path: "/super-admin/dashboard" },
   { label: "Kullanıcılar", icon: PeopleAltOutlined, path: "/management/users" },
-  { label: "Departmanlar", icon: ApartmentRounded },
+  { label: "Departmanlar", icon: ApartmentRounded, path: "/management/departments" },
   { label: "Unvanlar", icon: BadgeOutlined },
   { label: "Roller ve yetkiler", icon: VerifiedUserOutlined },
   { label: "Odalar ve özellikler", icon: MeetingRoomOutlined },

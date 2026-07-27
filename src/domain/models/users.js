@@ -5,6 +5,15 @@ export const departments = [
   { id: 4, name: "Operasyon" },
 ];
 
+export const departmentRecords = [
+  { id: 1, name: "İnsan Kaynakları", description: "İşe alım, çalışan deneyimi ve kurum içi süreçlerin yönetimi.", userCount: 18, active: true, manager: "Ayşe Kaya" },
+  { id: 2, name: "Bilgi Teknolojileri", description: "Yazılım, altyapı, bilgi güvenliği ve teknik destek operasyonları.", userCount: 42, active: true, manager: "Mert Demir" },
+  { id: 3, name: "Yönetim", description: "Şirket stratejisi, idari koordinasyon ve yönetici destek süreçleri.", userCount: 9, active: true, manager: "Selin Aksoy" },
+  { id: 4, name: "Operasyon", description: "Günlük operasyonların planlanması ve hizmet süreçlerinin takibi.", userCount: 31, active: true, manager: "Emre Yıldız" },
+  { id: 5, name: "Satış ve Pazarlama", description: "Müşteri kazanımı, marka iletişimi ve satış faaliyetleri.", userCount: 27, active: true, manager: "Deniz Arslan" },
+  { id: 6, name: "Arşiv ve Dokümantasyon", description: "Kurumsal belge ve arşiv süreçlerinin yönetimi.", userCount: 0, active: false, manager: null },
+];
+
 export const jobTitles = [
   { id: 1, name: "İK Uzmanı" },
   { id: 2, name: "Yazılım Geliştirici" },

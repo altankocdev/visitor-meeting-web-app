@@ -1,5 +1,6 @@
 import { AddRounded, CheckCircleOutlineRounded, EditOutlined, GroupsOutlined, MoreHorizRounded, PersonOffOutlined, SearchRounded, ShieldOutlined } from "@mui/icons-material";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { managementSession } from "../../domain/auth/managementSession";
 import { hasPermission, permissions } from "../../domain/auth/permissions";
 import { companyRoles, departments, jobTitles, users as seedUsers } from "../../domain/models/users";
@@ -10,12 +11,14 @@ import { EditUserDialog, UserDetailsDialog, UserStatusDialog } from "../componen
 import styles from "./UsersPage.module.css";
 
 export function UsersPage({ session = managementSession }) {
+  const [searchParams] = useSearchParams();
+  const departmentFromUrl = searchParams.get("department") || "";
   const [users, setUsers] = useState(seedUsers);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [statusTarget, setStatusTarget] = useState(null);
   const [detailsTarget, setDetailsTarget] = useState(null);
-  const [filters, setFilters] = useState({ search: "", department: "", role: "", status: "" });
+  const [filters, setFilters] = useState({ search: "", department: departmentFromUrl, role: "", status: "" });
   const canCreate = hasPermission(session.permissions, permissions.USER_CREATE);
   const canUpdate = hasPermission(session.permissions, permissions.USER_UPDATE);
   const canDeactivate = hasPermission(session.permissions, permissions.USER_DEACTIVATE);
