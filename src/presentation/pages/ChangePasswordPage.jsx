@@ -9,7 +9,10 @@ import {
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { completePasswordStep, employeeSession } from "../../domain/auth/employeeSession";
+import { employeeSession } from "../../domain/auth/employeeSession";
+import { getApiErrorMessage } from "../../infrastructure/api/apiError";
+import { tokenStorage } from "../../infrastructure/auth/tokenStorage";
+import { authRepository } from "../../infrastructure/repositories/authRepository";
 import styles from "./ChangePasswordPage.module.css";
 
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
@@ -17,7 +20,10 @@ const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$
 export function ChangePasswordPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const {
     register,
     handleSubmit,
@@ -25,6 +31,7 @@ export function ChangePasswordPage() {
     formState: { errors },
   } = useForm({
     defaultValues: {
+      currentPassword: "",
       newPassword: "",
       confirmPassword: "",
     },
@@ -32,12 +39,21 @@ export function ChangePasswordPage() {
 
   const newPassword = watch("newPassword");
 
-  const onSubmit = () => {
-    // Backend bağlandığında bu adım başarılı şifre güncelleme cevabından sonra çalışacak.
-    completePasswordStep();
-    navigate(employeeSession.mustCompleteProfile ? "/complete-profile" : "/dashboard", {
-      replace: true,
-    });
+  const onSubmit = async ({ currentPassword, newPassword }) => {
+    setSubmitError("");
+    setSubmitting(true);
+    try {
+      await authRepository.changePassword(currentPassword, newPassword);
+      tokenStorage.clear();
+      navigate("/login", {
+        replace: true,
+        state: { passwordChanged: true },
+      });
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error, "Şifre değiştirilemedi."));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -64,6 +80,26 @@ export function ChangePasswordPage() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <label htmlFor="currentPassword">Geçici şifre</label>
+          <div className={`${styles.input} ${errors.currentPassword ? styles.inputError : ""}`}>
+            <ShieldOutlined />
+            <input
+              id="currentPassword"
+              type={showCurrentPassword ? "text" : "password"}
+              autoComplete="current-password"
+              placeholder="Size verilen geçici şifre"
+              {...register("currentPassword", { required: "Geçici şifre zorunludur." })}
+            />
+            <button
+              type="button"
+              aria-label={showCurrentPassword ? "Geçici şifreyi gizle" : "Geçici şifreyi göster"}
+              onClick={() => setShowCurrentPassword((value) => !value)}
+            >
+              {showCurrentPassword ? <VisibilityOffOutlined /> : <VisibilityOutlined />}
+            </button>
+          </div>
+          {errors.currentPassword && <span className={styles.error}>{errors.currentPassword.message}</span>}
+
           <label htmlFor="newPassword">Yeni şifre</label>
           <div className={`${styles.input} ${errors.newPassword ? styles.inputError : ""}`}>
             <ShieldOutlined />
@@ -120,8 +156,9 @@ export function ChangePasswordPage() {
             <span><CheckCircleRounded />En az bir rakam ve özel karakter</span>
           </div>
 
-          <button className={styles.submit} type="submit">
-            Şifreyi değiştir ve devam et <span>→</span>
+          {submitError && <span className={styles.error} role="alert">{submitError}</span>}
+          <button className={styles.submit} type="submit" disabled={submitting}>
+            {submitting ? "Şifre değiştiriliyor..." : "Şifreyi değiştir"} <span>→</span>
           </button>
         </form>
 

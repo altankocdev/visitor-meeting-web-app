@@ -9,26 +9,44 @@ import {
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { employeeSession } from "../../domain/auth/employeeSession";
+import { getApiErrorMessage } from "../../infrastructure/api/apiError";
+import { authRepository } from "../../infrastructure/repositories/authRepository";
 import styles from "./LoginPage.module.css";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
     defaultValues: {
+      companySlug: "",
       loginIdentifier: "",
       password: "",
       remember: false,
     },
   });
 
-  const onSubmit = () => {
-    navigate(employeeSession.mustChangePassword ? "/change-password" : "/dashboard");
+  const onSubmit = async (values) => {
+    setSubmitError("");
+    setSubmitting(true);
+    try {
+      const session = await authRepository.login({
+        companySlug: values.companySlug.trim().toLocaleLowerCase("tr-TR"),
+        identifier: values.loginIdentifier.trim(),
+        password: values.password,
+        remember: values.remember,
+      });
+      navigate(session.mustChangePassword ? "/change-password" : "/dashboard");
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error, "Oturum açılamadı. Bilgilerinizi kontrol edin."));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -51,6 +69,25 @@ export function LoginPage() {
           <small className={styles.eyebrow}>TEKRAR HOŞ GELDİNİZ</small>
           <h2>Oturum açın</h2>
           <p>Kullanıcı adınız veya kurumsal e-posta adresinizle devam edin.</p>
+
+          <label htmlFor="companySlug">Şirket kodu</label>
+          <div className={`${styles.input} ${errors.companySlug ? styles.error : ""}`}>
+            <PersonOutlineRounded />
+            <input
+              id="companySlug"
+              type="text"
+              autoComplete="organization"
+              placeholder="ornek-sirket"
+              {...register("companySlug", {
+                required: "Şirket kodu zorunludur.",
+                pattern: {
+                  value: /^[a-z0-9-]+$/,
+                  message: "Şirket kodu küçük harf, rakam ve tire içerebilir.",
+                },
+              })}
+            />
+          </div>
+          {errors.companySlug && <span className={styles.errorText}>{errors.companySlug.message}</span>}
 
           <label htmlFor="loginIdentifier">Kullanıcı adı veya e-posta</label>
           <div className={`${styles.input} ${errors.loginIdentifier ? styles.error : ""}`}>
@@ -96,7 +133,10 @@ export function LoginPage() {
             <span>Beni hatırla</span>
           </label>
 
-          <button className={styles.submit} type="submit"><span>Oturum aç</span><b>→</b></button>
+          {submitError && <span className={styles.errorText} role="alert">{submitError}</span>}
+          <button className={styles.submit} type="submit" disabled={submitting}>
+            <span>{submitting ? "Oturum açılıyor..." : "Oturum aç"}</span><b>→</b>
+          </button>
           <p className={styles.signup}>Şirketiniz henüz Meetly&apos;de değil mi? <button type="button">Şirket oluşturun</button></p>
         </form>
       </section>

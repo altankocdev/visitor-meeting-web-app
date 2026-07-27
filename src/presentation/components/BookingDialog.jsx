@@ -42,8 +42,13 @@ export function BookingDialog({ open, onClose, rooms, onCreate }) {
   );
 
   const submit = (data) => {
+    const participantIds = data.participantUsernames
+      .map((username) => companyUsers.find((user) => user.username === username)?.id)
+      .filter(Boolean);
+
     onCreate({
       ...data,
+      participantIds,
       participantUsernames: data.participantUsernames.map((username) =>
         username.replace(/^@/, "").trim().toLocaleLowerCase("tr-TR"),
       ),
