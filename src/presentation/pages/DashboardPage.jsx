@@ -21,8 +21,8 @@ export function DashboardPage() {
   const user = employeeSession.user;
 
   const ownReservations = useMemo(
-    () => reservations.filter((item) => item.organizer === "Siz" || item.organizer === `${user.firstName} ${user.lastName}`),
-    [reservations, user.firstName, user.lastName],
+    () => reservations.filter((item) => item.organizer === "Siz" || item.organizer === user.username),
+    [reservations, user.username],
   );
 
   const upcomingReservations = useMemo(
@@ -32,7 +32,7 @@ export function DashboardPage() {
 
   const calendarReservations = useMemo(
     () => reservations.map((item) => {
-      const isOwn = item.organizer === "Siz" || item.organizer === `${user.firstName} ${user.lastName}`;
+      const isOwn = item.organizer === "Siz" || item.organizer === user.username;
 
       return isOwn
         ? { ...item, isOwn: true }
@@ -45,7 +45,7 @@ export function DashboardPage() {
             isOwn: false,
           };
     }),
-    [reservations, user.firstName, user.lastName],
+    [reservations, user.username],
   );
 
   const canCreateReservation = hasPermission(
@@ -67,7 +67,7 @@ export function DashboardPage() {
         room: room.name,
         participants: Number(data.participantCount),
         status: "PENDING_APPROVAL",
-        organizer: "Siz",
+        organizer: user.username,
       },
     ]);
   };
@@ -85,7 +85,7 @@ export function DashboardPage() {
               <span className={styles.date}>
                 <CalendarMonthOutlined />20 Temmuz 2026, Pazartesi
               </span>
-              <h1>Günaydın, {user.firstName} <span>👋</span></h1>
+              <h1>Günaydın, @{user.username} <span>👋</span></h1>
               <p>Kendi rezervasyonlarınızı yönetin ve uygun odaları kolayca bulun.</p>
             </div>
 

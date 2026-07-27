@@ -19,8 +19,8 @@ export function Topbar({ user = employeeSession.user }) {
         <div className={styles.profile}>
           <span className={styles.avatar}>{user.initials}</span>
           <div>
-            <b>{user.firstName} {user.lastName}</b>
-            <small>{user.roleLabel}</small>
+            <b>@{user.username}</b>
+            <small>{user.email}</small>
           </div>
           <strong>⌄</strong>
         </div>

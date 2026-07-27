@@ -11,7 +11,7 @@ export const rooms = [
 ];
 
 export const reservations = [
-  { id: 1, title: "Ürün yol haritası", start: "2026-07-20T09:30:00", end: "2026-07-20T10:30:00", roomId: 1, room: "Orion", participants: 7, status: "ACTIVE", organizer: "Ece Yılmaz" },
+  { id: 1, title: "Ürün yol haritası", start: "2026-07-20T09:30:00", end: "2026-07-20T10:30:00", roomId: 1, room: "Orion", participants: 7, status: "ACTIVE", organizer: "ece.yilmaz" },
   { id: 2, title: "Tasarım değerlendirme", start: "2026-07-20T13:00:00", end: "2026-07-20T14:00:00", roomId: 2, room: "Luna", participants: 4, status: "PENDING_APPROVAL", organizer: "Mert Kaya" },
   { id: 3, title: "Haftalık ekip toplantısı", start: "2026-07-21T11:00:00", end: "2026-07-21T12:00:00", roomId: 3, room: "Atlas", participants: 10, status: "ACTIVE", organizer: "Siz" },
   { id: 4, title: "Müşteri sunumu", start: "2026-07-22T14:30:00", end: "2026-07-22T16:00:00", roomId: 1, room: "Orion", participants: 6, status: "ACTIVE", organizer: "Selin Ak" },

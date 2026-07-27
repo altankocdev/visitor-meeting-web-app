@@ -1,11 +1,12 @@
 import { permissions } from "./permissions";
 
-// Backend bağlantısı kurulduğunda bu nesne /auth/me cevabından üretilecek.
+// Backend bağlantısı kurulduğunda /auth/me cevabından üretilecek geçici oturum.
 export const employeeSession = Object.freeze({
+  mustChangePassword: true,
   user: {
     id: 42,
-    firstName: "Ece",
-    lastName: "Yılmaz",
+    username: "ece.yilmaz",
+    email: "ece.yilmaz@atlasteknoloji.com",
     initials: "EY",
     role: "CALISAN",
     roleLabel: "Çalışan",
@@ -13,4 +14,3 @@ export const employeeSession = Object.freeze({
   },
   permissions: Object.values(permissions),
 });
-
