@@ -4,7 +4,7 @@ export const superAdminNavigation = [
   { label: "Genel bakış", icon: DashboardRounded, path: "/super-admin/dashboard" },
   { label: "Kullanıcılar", icon: PeopleAltOutlined, path: "/management/users" },
   { label: "Departmanlar", icon: ApartmentRounded, path: "/management/departments" },
-  { label: "Unvanlar", icon: BadgeOutlined },
+  { label: "Unvanlar", icon: BadgeOutlined, path: "/management/job-titles" },
   { label: "Roller ve yetkiler", icon: VerifiedUserOutlined, path: "/management/roles" },
   { label: "Odalar ve özellikler", icon: MeetingRoomOutlined },
   { label: "Rezervasyonlar", icon: GroupsOutlined, badge: 3 },
