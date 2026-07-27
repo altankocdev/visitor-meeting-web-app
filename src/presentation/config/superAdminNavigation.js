@@ -7,7 +7,7 @@ export const superAdminNavigation = [
   { label: "Unvanlar", icon: BadgeOutlined, path: "/management/job-titles" },
   { label: "Roller ve yetkiler", icon: VerifiedUserOutlined, path: "/management/roles" },
   { label: "Odalar ve özellikler", icon: MeetingRoomOutlined, path: "/management/rooms" },
-  { label: "Rezervasyonlar", icon: GroupsOutlined, badge: 3 },
+  { label: "Rezervasyonlar", icon: GroupsOutlined, badge: 3, path: "/management/reservations" },
   { label: "Raporlar", icon: AssessmentOutlined },
   { label: "Denetim kayıtları", icon: HistoryRounded },
   { label: "Bildirimler", icon: NotificationsNoneRounded },
