@@ -2,6 +2,8 @@ import { AddRounded, ApartmentRounded, ArrowForwardRounded, BadgeOutlined, Calen
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import { managementSession } from "../../domain/auth/managementSession";
+import { adminReservations } from "../../domain/models/adminReservations";
+import { BookingCalendar } from "../components/BookingCalendar";
 import styles from "./SuperAdminDashboardPage.module.css";
 
 const stats = [
@@ -25,6 +27,21 @@ const quickActions = [
 ];
 
 export function SuperAdminDashboardPage() {
+  const calendarReservations = adminReservations
+    .filter((reservation) => ["ACTIVE", "PENDING_APPROVAL"].includes(reservation.status))
+    .map((reservation) => ({
+      id: reservation.id,
+      title: reservation.title,
+      start: reservation.startTime,
+      end: reservation.endTime,
+      roomId: reservation.room.id,
+      room: reservation.room.name,
+      participants: reservation.participants.length,
+      participantUsernames: reservation.participants.map((participant) => participant.email.split("@")[0]),
+      status: reservation.status,
+      organizer: reservation.organizer.fullName,
+      isOwn: true,
+    }));
   return (
     <div className={styles.shell}>
       <AdminSidebar session={managementSession} />
@@ -68,6 +85,16 @@ export function SuperAdminDashboardPage() {
               <div className={styles.today}><span><ScheduleRounded /></span><div><b>Bugünün özeti</b><p>24 toplantı · 38 ziyaretçi · 3 onay</p></div></div>
               <button className={styles.auditButton} type="button"><TrendingUpRounded /> Yönetim raporlarını incele</button>
             </aside>
+          </section>
+
+          <section className={styles.calendarSection}>
+            <BookingCalendar
+              reservations={calendarReservations}
+              initialDate="2026-07-27"
+              mode="admin"
+              title="Şirket toplantı ve oda takvimi"
+              description="Tüm toplantı odalarının doluluk durumunu ve rezervasyon detaylarını saat bazında görüntüleyin."
+            />
           </section>
         </main>
       </div>
