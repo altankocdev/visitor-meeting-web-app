@@ -1,6 +1,13 @@
 export const permissions = Object.freeze({
   COMPANY_VIEW: "COMPANY_VIEW",
   USER_VIEW: "USER_VIEW",
+  USER_VIEW_ALL: "USER_VIEW_ALL",
+  USER_CREATE: "USER_CREATE",
+  USER_UPDATE: "USER_UPDATE",
+  USER_DEACTIVATE: "USER_DEACTIVATE",
+  USER_ACTIVATE: "USER_ACTIVATE",
+  USER_ASSIGN_ROLE: "USER_ASSIGN_ROLE",
+  USER_ASSIGN_JOB_TITLE: "USER_ASSIGN_JOB_TITLE",
   ROOM_VIEW: "ROOM_VIEW",
   ROOM_VIEW_AVAILABILITY: "ROOM_VIEW_AVAILABILITY",
   FEATURE_VIEW: "FEATURE_VIEW",
@@ -20,4 +27,3 @@ export const permissions = Object.freeze({
 export function hasPermission(userPermissions, permission) {
   return userPermissions.includes(permission);
 }
-

@@ -8,6 +8,7 @@ import { ReservationsPage } from "./pages/ReservationsPage";
 import { RoomsPage } from "./pages/RoomsPage";
 import { SuperAdminLoginPage } from "./pages/SuperAdminLoginPage";
 import { SuperAdminDashboardPage } from "./pages/SuperAdminDashboardPage";
+import { UsersPage } from "./pages/UsersPage";
 
 export function App() {
   return (
@@ -17,6 +18,7 @@ export function App() {
       <Route path="/complete-profile" element={<CompleteProfilePage />} />
       <Route path="/super-admin/login" element={<SuperAdminLoginPage />} />
       <Route path="/super-admin/dashboard" element={<SuperAdminDashboardPage />} />
+      <Route path="/management/users" element={<UsersPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/reservations" element={<ReservationsPage />} />
