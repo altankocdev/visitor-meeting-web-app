@@ -7,6 +7,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { JobTitlesPage } from "./pages/JobTitlesPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { ReservationsPage } from "./pages/ReservationsPage";
+import { AdminReservationsPage } from "./pages/AdminReservationsPage";
 import { RoomsPage } from "./pages/RoomsPage";
 import { RolesPage } from "./pages/RolesPage";
 import { RoomManagementPage } from "./pages/RoomManagementPage";
@@ -27,6 +28,7 @@ export function App() {
       <Route path="/management/roles" element={<RolesPage />} />
       <Route path="/management/job-titles" element={<JobTitlesPage />} />
       <Route path="/management/rooms" element={<RoomManagementPage />} />
+      <Route path="/management/reservations" element={<AdminReservationsPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/reservations" element={<ReservationsPage />} />
