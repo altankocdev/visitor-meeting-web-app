@@ -1,0 +1,132 @@
+.drawer {
+  width: min(440px, 100vw);
+  padding: 26px;
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(187, 225, 250, .65), transparent 34%),
+    #f8fbfd;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header small {
+  color: var(--color-blue);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+.header h2 {
+  margin: 7px 0 4px;
+  font: 700 23px "Manrope", sans-serif;
+  letter-spacing: -.03em;
+}
+
+.header p {
+  margin: 0;
+  color: #748791;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin: 20px 0 10px;
+  padding: 14px;
+  border: 1px solid #b7d9ee;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #e8f5fc, #f5fbff);
+}
+
+.summary > span {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 11px;
+  color: white;
+  background: var(--color-deep-blue);
+  font: 700 19px "Manrope", sans-serif;
+}
+
+.summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.summary strong { color: var(--color-deep-blue); font-size: 12px; }
+.summary small { color: #718690; font-size: 10px; }
+.list { display: grid; gap: 12px; padding-top: 12px; }
+
+.card {
+  padding: 16px;
+  border: 1px solid #b8dcf3;
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 7px 22px rgba(27, 38, 44, .05);
+}
+
+.privateCard { border-color: #d6e0e5; }
+.cardHead { display: grid; grid-template-columns: 39px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+
+.roomIcon {
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: var(--color-deep-blue);
+  background: var(--color-pale-blue);
+}
+
+.roomIcon svg { width: 20px; }
+.cardHead div { min-width: 0; }
+.cardHead small { color: var(--color-blue); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.cardHead h3 { overflow: hidden; margin: 2px 0 0; font: 700 14px "Manrope", sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+
+.status {
+  padding: 5px 7px;
+  border-radius: 99px;
+  color: var(--color-deep-blue);
+  background: #e6f4fc;
+  font-size: 8px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pending_approval { color: #754b16; background: #fff0db; }
+.busy { color: #526773; background: #e9eff2; }
+.details { display: grid; gap: 7px; margin-top: 15px; padding-top: 13px; border-top: 1px solid #edf1f3; }
+.details span { display: flex; align-items: center; gap: 7px; color: #617681; font-size: 11px; }
+.details svg { width: 15px; height: 15px; color: var(--color-blue); }
+
+.privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 13px;
+  padding: 10px;
+  border-radius: 10px;
+  color: #657983;
+  background: #f0f4f6;
+}
+
+.privacy svg { width: 15px; flex: 0 0 auto; }
+.privacy p { margin: 0; font-size: 9px; line-height: 1.5; }
+
+@media (max-width: 520px) {
+  .drawer { padding: 20px 16px; }
+  .cardHead { grid-template-columns: 36px minmax(0, 1fr); }
+  .status { grid-column: 2; justify-self: start; }
+}
