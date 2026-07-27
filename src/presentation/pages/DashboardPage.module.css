@@ -1,12 +1,12 @@
-.shell { min-height: 100vh; display: flex; }
+﻿.shell { min-height: 100vh; display: flex; }
 .main { width: calc(100% - var(--sidebar-width)); min-width: 0; margin-left: var(--sidebar-width); }
 .content { width: 100%; max-width: 1540px; margin: auto; padding: 29px 32px 42px; }
 .welcome { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 25px; }
-.date { display: flex; align-items: center; gap: 6px; color: var(--color-blue); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.date { display: flex; align-items: center; gap: 6px; color: var(--color-blue); font-size: var(--font-md); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .date svg { width: 15px; }
 .welcome h1 { margin: 6px 0 3px; font: 700 clamp(23px, 2.2vw, 29px) "Manrope", sans-serif; letter-spacing: -.035em; }
 .welcome h1 span { font-size: 21px; }
-.welcome p { margin: 0; color: #7c8c95; font-size: 13px; }
+.welcome p { margin: 0; color: #7c8c95; font-size: var(--font-base); }
 .action { height: 43px; flex: 0 0 auto; padding: 0 18px !important; background: linear-gradient(110deg, var(--color-deep-blue), var(--color-blue)) !important; }
 .grid { display: grid; grid-template-columns: minmax(620px, 1.8fr) minmax(280px, .65fr); gap: 17px; align-items: start; }
 
@@ -31,3 +31,4 @@
 }
 
 @media (max-width: 420px) { .content { padding-inline: 12px; } }
+

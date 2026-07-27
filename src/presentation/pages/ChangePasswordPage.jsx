@@ -9,7 +9,7 @@ import {
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { employeeSession } from "../../domain/auth/employeeSession";
+import { completePasswordStep, employeeSession } from "../../domain/auth/employeeSession";
 import styles from "./ChangePasswordPage.module.css";
 
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
@@ -33,8 +33,11 @@ export function ChangePasswordPage() {
   const newPassword = watch("newPassword");
 
   const onSubmit = () => {
-    // Backend bağlandığında şifre güncellendikten ve token yenilendikten sonra yönlendirilecek.
-    navigate("/dashboard", { replace: true });
+    // Backend bağlandığında bu adım başarılı şifre güncelleme cevabından sonra çalışacak.
+    completePasswordStep();
+    navigate(employeeSession.mustCompleteProfile ? "/complete-profile" : "/dashboard", {
+      replace: true,
+    });
   };
 
   return (
