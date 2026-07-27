@@ -11,18 +11,19 @@ import {
 } from "@mui/icons-material";
 import {
   Button,
+  Alert,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Snackbar,
 } from "@mui/material";
 import dayjs from "dayjs";
 import "dayjs/locale/tr";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { employeeSession } from "../../domain/auth/employeeSession";
 import {
   reservationStatuses,
-  reservations as seedReservations,
   rooms,
 } from "../../domain/models/meeting";
 import { BookingDialog } from "../components/BookingDialog";
@@ -30,8 +31,12 @@ import { MeetingDetailsPanel } from "../components/MeetingDetailsPanel";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 import styles from "./ReservationsPage.module.css";
+import { getApiErrorMessage } from "../../infrastructure/api/apiError";
+import { getAccessTokenClaims } from "../../infrastructure/auth/jwtClaims";
+import { mapReservationFormToApi, mapReservationFromApi } from "../../infrastructure/mappers/reservationMapper";
+import { reservationRepository } from "../../infrastructure/repositories/reservationRepository";
 
-const referenceDate = dayjs("2026-07-20T12:00:00");
+const referenceDate = dayjs();
 
 function getDisplayStatus(reservation) {
   if (reservation.status === "CANCELLED") return "CANCELLED";
@@ -41,7 +46,9 @@ function getDisplayStatus(reservation) {
 
 export function ReservationsPage() {
   const user = employeeSession.user;
-  const [reservations, setReservations] = useState(seedReservations);
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
@@ -52,12 +59,39 @@ export function ReservationsPage() {
     date: "",
   });
 
+  useEffect(() => {
+    let active = true;
+    const claims = getAccessTokenClaims();
+    const from = dayjs().subtract(1, "year").startOf("day").format("YYYY-MM-DDTHH:mm:ss");
+    const to = dayjs().add(1, "year").endOf("day").format("YYYY-MM-DDTHH:mm:ss");
+
+    reservationRepository.calendar(from, to, { size: 200 })
+      .then((page) => {
+        if (!active) return;
+        const items = page.content
+          .filter((item) => !claims?.sub || String(item.organizer?.id) === String(claims.sub))
+          .map(mapReservationFromApi);
+        setReservations(items);
+      })
+      .catch((error) => {
+        if (active) {
+          setNotice({ severity: "error", text: getApiErrorMessage(error, "Rezervasyonlar yüklenemedi.") });
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const ownReservations = useMemo(
     () => reservations
-      .filter((item) => item.organizer === "Siz" || item.organizer === user.username)
       .map((item) => ({ ...item, status: getDisplayStatus(item), isOwn: true }))
       .sort((a, b) => dayjs(b.start).valueOf() - dayjs(a.start).valueOf()),
-    [reservations, user.username],
+    [reservations],
   );
 
   const filteredReservations = useMemo(
@@ -80,31 +114,27 @@ export function ReservationsPage() {
     completed: ownReservations.filter((item) => item.status === "COMPLETED").length,
   };
 
-  const createReservation = (data) => {
-    const room = rooms.find((item) => item.id === Number(data.roomId));
-    setReservations((current) => [
-      ...current,
-      {
-        id: Date.now(),
-        title: data.title,
-        start: `${data.date}T${data.startTime}:00`,
-        end: `${data.date}T${data.endTime}:00`,
-        roomId: room.id,
-        room: room.name,
-        participants: Number(data.participantCount),
-        participantUsernames: data.participantUsernames,
-        description: data.description,
-        status: "PENDING_APPROVAL",
-        organizer: user.username,
-      },
-    ]);
+  const createReservation = async (data) => {
+    try {
+      const created = await reservationRepository.create(mapReservationFormToApi(data));
+      setReservations((current) => [...current, mapReservationFromApi(created)]);
+      setNotice({ severity: "success", text: "Rezervasyon oluşturuldu." });
+    } catch (error) {
+      setNotice({ severity: "error", text: getApiErrorMessage(error, "Rezervasyon oluşturulamadı.") });
+    }
   };
 
-  const cancelReservation = () => {
-    setReservations((current) => current.map((item) => (
-      item.id === cancelTarget.id ? { ...item, status: "CANCELLED" } : item
-    )));
-    setCancelTarget(null);
+  const cancelReservation = async () => {
+    try {
+      await reservationRepository.cancel(cancelTarget.id, "Kullanıcı tarafından iptal edildi.");
+      setReservations((current) => current.map((item) => (
+        item.id === cancelTarget.id ? { ...item, status: "CANCELLED" } : item
+      )));
+      setCancelTarget(null);
+      setNotice({ severity: "success", text: "Rezervasyon iptal edildi." });
+    } catch (error) {
+      setNotice({ severity: "error", text: getApiErrorMessage(error, "Rezervasyon iptal edilemedi.") });
+    }
   };
 
   const updateFilter = (key, value) => {
@@ -153,7 +183,7 @@ export function ReservationsPage() {
             <div className={styles.panelHead}>
               <div>
                 <h2>Rezervasyon listesi</h2>
-                <p>{filteredReservations.length} rezervasyon gösteriliyor</p>
+                <p>{loading ? "Rezervasyonlar yükleniyor..." : `${filteredReservations.length} rezervasyon gösteriliyor`}</p>
               </div>
             </div>
 
@@ -261,6 +291,9 @@ export function ReservationsPage() {
           <Button color="error" variant="contained" onClick={cancelReservation}>Rezervasyonu iptal et</Button>
         </DialogActions>
       </Dialog>
+      <Snackbar open={Boolean(notice)} autoHideDuration={5000} onClose={() => setNotice(null)}>
+        <Alert severity={notice?.severity ?? "info"} onClose={() => setNotice(null)}>{notice?.text}</Alert>
+      </Snackbar>
     </div>
   );
 }
