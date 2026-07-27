@@ -4,6 +4,7 @@ import { CompleteProfilePage } from "./pages/CompleteProfilePage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { DepartmentsPage } from "./pages/DepartmentsPage";
 import { LoginPage } from "./pages/LoginPage";
+import { JobTitlesPage } from "./pages/JobTitlesPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { ReservationsPage } from "./pages/ReservationsPage";
 import { RoomsPage } from "./pages/RoomsPage";
@@ -23,6 +24,7 @@ export function App() {
       <Route path="/management/users" element={<UsersPage />} />
       <Route path="/management/departments" element={<DepartmentsPage />} />
       <Route path="/management/roles" element={<RolesPage />} />
+      <Route path="/management/job-titles" element={<JobTitlesPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/reservations" element={<ReservationsPage />} />
