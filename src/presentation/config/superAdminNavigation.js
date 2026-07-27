@@ -8,8 +8,8 @@ export const superAdminNavigation = [
   { label: "Roller ve yetkiler", icon: VerifiedUserOutlined, path: "/management/roles" },
   { label: "Odalar ve özellikler", icon: MeetingRoomOutlined, path: "/management/rooms" },
   { label: "Rezervasyonlar", icon: GroupsOutlined, badge: 3, path: "/management/reservations" },
-  { label: "Raporlar", icon: AssessmentOutlined },
-  { label: "Denetim kayıtları", icon: HistoryRounded },
+  { label: "Raporlar", icon: AssessmentOutlined, path: "/management/reports" },
+  { label: "Denetim kayıtları", icon: HistoryRounded, path: "/management/audit-logs" },
   { label: "Bildirimler", icon: NotificationsNoneRounded },
   { label: "Şirket ayarları", icon: SettingsOutlined },
 ];

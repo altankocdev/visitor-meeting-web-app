@@ -1,0 +1,22 @@
+import { AssessmentOutlined, CancelOutlined, CheckCircleOutlineRounded, DownloadRounded, EventOutlined, MeetingRoomOutlined, TrendingUpRounded } from "@mui/icons-material";
+import { useState } from "react";
+import { managementSession } from "../../domain/auth/managementSession";
+import { reportSummary, roomUsage, weeklyReservationData } from "../../domain/models/reporting";
+import { AdminSidebar } from "../components/AdminSidebar";
+import { AdminTopbar } from "../components/AdminTopbar";
+import styles from "./ReportsPage.module.css";
+
+export function ReportsPage({ session = managementSession }) {
+  const [range, setRange] = useState("7");
+  const max = Math.max(...weeklyReservationData.map((item) => item.approved + item.pending + item.cancelled));
+
+  return <div className={styles.shell}><AdminSidebar session={session} /><div className={styles.main}><AdminTopbar /><main className={styles.content}>
+    <header className={styles.pageHead}><div><small>ANALİZ VE RAPORLAMA</small><h1>Raporlar</h1><p>Rezervasyon performansını ve toplantı odası kullanımını analiz edin.</p></div><div className={styles.headActions}><select value={range} onChange={(event) => setRange(event.target.value)}><option value="7">Son 7 gün</option><option value="30">Son 30 gün</option><option value="90">Son 3 ay</option></select><button type="button"><DownloadRounded />Excel olarak indir</button></div></header>
+    <section className={styles.stats}><article><span className={styles.blue}><EventOutlined /></span><div><small>Toplam rezervasyon</small><strong>{reportSummary.reservations}</strong><p>Önceki döneme göre +%12</p></div></article><article><span className={styles.green}><CheckCircleOutlineRounded /></span><div><small>Onay oranı</small><strong>%{reportSummary.approvalRate}</strong><p>167 onaylanan toplantı</p></div></article><article><span className={styles.orange}><MeetingRoomOutlined /></span><div><small>Oda kullanım oranı</small><strong>%{reportSummary.roomUsageRate}</strong><p>Toplam kullanılabilir sürenin oranı</p></div></article><article><span className={styles.gray}><CancelOutlined /></span><div><small>İptal edilen</small><strong>{reportSummary.cancellations}</strong><p>%6,5 iptal oranı</p></div></article></section>
+    <section className={styles.grid}>
+      <article className={styles.chartPanel}><header><div><h2>Haftalık rezervasyon hareketi</h2><p>Durumlara göre günlük toplantı sayıları.</p></div><div className={styles.legend}><span><i className={styles.approvedDot} />Onaylı</span><span><i className={styles.pendingDot} />Bekleyen</span><span><i className={styles.cancelledDot} />İptal</span></div></header><div className={styles.chart}>{weeklyReservationData.map((item) => <div className={styles.day} key={item.day}><div className={styles.barArea}><div className={styles.stack} style={{ height: `${((item.approved + item.pending + item.cancelled) / max) * 100}%` }} title={`${item.approved + item.pending + item.cancelled} rezervasyon`}><i className={styles.approvedBar} style={{ flex: item.approved }} /><i className={styles.pendingBar} style={{ flex: item.pending }} /><i className={styles.cancelledBar} style={{ flex: item.cancelled }} /></div></div><b>{item.day}</b><small>{item.approved + item.pending + item.cancelled}</small></div>)}</div></article>
+      <aside className={styles.summaryPanel}><header><h2>Dönem özeti</h2><p>Operasyonel göstergeler</p></header><div className={styles.summaryList}><div><span><TrendingUpRounded /></span><p><small>En yoğun gün</small><b>Perşembe</b><em>39 rezervasyon</em></p></div><div><span><MeetingRoomOutlined /></span><p><small>En çok kullanılan oda</small><b>Orion</b><em>%82 doluluk</em></p></div><div><span><AssessmentOutlined /></span><p><small>Ortalama toplantı süresi</small><b>1 sa 18 dk</b><em>Geçen döneme göre -6 dk</em></p></div></div></aside>
+    </section>
+    <section className={styles.tablePanel}><header><div><h2>Oda kullanım raporu</h2><p>Odaların rezervasyon ve doluluk performansı.</p></div></header><div className={styles.tableWrap}><table><thead><tr><th>ODA</th><th>REZERVASYON</th><th>TOPLAM SÜRE</th><th>KULLANIM ORANI</th></tr></thead><tbody>{roomUsage.map((room) => <tr key={room.id}><td><b>{room.name}</b><small>{room.location}</small></td><td>{room.reservations} toplantı</td><td>{room.hours} saat</td><td><div className={styles.progress}><span><i style={{ width: `${room.utilization}%` }} /></span><b>%{room.utilization}</b></div></td></tr>)}</tbody></table></div></section>
+  </main></div></div>;
+}
