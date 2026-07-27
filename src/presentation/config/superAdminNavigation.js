@@ -10,6 +10,6 @@ export const superAdminNavigation = [
   { label: "Rezervasyonlar", icon: GroupsOutlined, badge: 3, path: "/management/reservations" },
   { label: "Raporlar", icon: AssessmentOutlined, path: "/management/reports" },
   { label: "Denetim kayıtları", icon: HistoryRounded, path: "/management/audit-logs" },
-  { label: "Bildirimler", icon: NotificationsNoneRounded },
-  { label: "Şirket ayarları", icon: SettingsOutlined },
+  { label: "Bildirimler", icon: NotificationsNoneRounded, path: "/management/notifications" },
+  { label: "Şirket ayarları", icon: SettingsOutlined, path: "/management/company-settings" },
 ];

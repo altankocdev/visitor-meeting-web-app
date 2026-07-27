@@ -10,6 +10,8 @@ import { ReservationsPage } from "./pages/ReservationsPage";
 import { AdminReservationsPage } from "./pages/AdminReservationsPage";
 import { AuditLogsPage } from "./pages/AuditLogsPage";
 import { ReportsPage } from "./pages/ReportsPage";
+import { CompanySettingsPage } from "./pages/CompanySettingsPage";
+import { ManagementNotificationsPage } from "./pages/ManagementNotificationsPage";
 import { RoomsPage } from "./pages/RoomsPage";
 import { RolesPage } from "./pages/RolesPage";
 import { RoomManagementPage } from "./pages/RoomManagementPage";
@@ -33,6 +35,8 @@ export function App() {
       <Route path="/management/reservations" element={<AdminReservationsPage />} />
       <Route path="/management/reports" element={<ReportsPage />} />
       <Route path="/management/audit-logs" element={<AuditLogsPage />} />
+      <Route path="/management/notifications" element={<ManagementNotificationsPage />} />
+      <Route path="/management/company-settings" element={<CompanySettingsPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/reservations" element={<ReservationsPage />} />
