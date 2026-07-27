@@ -1,4 +1,5 @@
 import {
+  AccountCircleRounded,
   CalendarMonthRounded,
   DashboardRounded,
   MeetingRoomRounded,
@@ -15,8 +16,14 @@ export const employeeNavigation = [
     permission: permissions.DASHBOARD_VIEW,
   },
   {
+    label: "Profilim",
+    path: "/profile",
+    icon: AccountCircleRounded,
+    permission: permissions.USER_VIEW,
+  },
+  {
     label: "Rezervasyonlarım",
-    path: null,
+    path: "/reservations",
     icon: CalendarMonthRounded,
     permission: permissions.RESERVATION_VIEW_OWN,
   },

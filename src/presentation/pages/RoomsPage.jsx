@@ -11,6 +11,7 @@ import {
 import { Button } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { employeeSession } from "../../domain/auth/employeeSession";
 import { reservations as seedReservations, rooms } from "../../domain/models/meeting";
 import { BookingDialog } from "../components/BookingDialog";
 import { Sidebar } from "../components/Sidebar";
@@ -53,8 +54,9 @@ export function RoomsPage() {
         roomId: room.id,
         room: room.name,
         participants: Number(data.participantCount),
+        participantUsernames: data.participantUsernames,
         status: "PENDING_APPROVAL",
-        organizer: "Siz",
+        organizer: employeeSession.user.username,
       },
     ]);
   };

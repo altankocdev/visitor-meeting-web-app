@@ -16,6 +16,11 @@
   --radius-lg: 16px;
   --radius-panel: 24px;
   --shadow-panel: 0 8px 24px rgba(31, 64, 82, 0.05);
+  --font-xs: 0.75rem;
+  --font-sm: 0.8125rem;
+  --font-md: 0.875rem;
+  --font-base: 0.9375rem;
+  --font-lg: 1rem;
   --sidebar-width: 228px;
   --sidebar-collapsed-width: 76px;
 }

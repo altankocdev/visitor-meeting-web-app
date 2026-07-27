@@ -19,6 +19,8 @@ export function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reservations, setReservations] = useState(seedReservations);
   const user = employeeSession.user;
+  const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ")
+    || `@${user.username}`;
 
   const ownReservations = useMemo(
     () => reservations.filter((item) => item.organizer === "Siz" || item.organizer === user.username),
@@ -66,6 +68,7 @@ export function DashboardPage() {
         roomId: room.id,
         room: room.name,
         participants: Number(data.participantCount),
+        participantUsernames: data.participantUsernames,
         status: "PENDING_APPROVAL",
         organizer: user.username,
       },
@@ -85,7 +88,7 @@ export function DashboardPage() {
               <span className={styles.date}>
                 <CalendarMonthOutlined />20 Temmuz 2026, Pazartesi
               </span>
-              <h1>Günaydın, @{user.username} <span>👋</span></h1>
+              <h1>Günaydın, {displayName} <span>👋</span></h1>
               <p>Kendi rezervasyonlarınızı yönetin ve uygun odaları kolayca bulun.</p>
             </div>
 

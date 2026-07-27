@@ -1,1 +1,2 @@
-.form{display:flex;flex-direction:column;gap:16px;padding-top:12px!important}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+﻿.form{display:flex;flex-direction:column;gap:16px;padding-top:12px!important}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.userOption{display:flex;flex-direction:column;gap:2px}.userOption strong{color:var(--color-deep-blue);font-size: var(--font-base)}.userOption small{color:#83959e;font-size: var(--font-sm)}.userChip{color:var(--color-deep-blue)!important;background:#e4f2fb!important;font-size: var(--font-sm)!important;font-weight:700!important}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+
