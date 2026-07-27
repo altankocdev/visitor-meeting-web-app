@@ -1,6 +1,7 @@
 import { AddRounded, ApartmentRounded, ArrowForwardRounded, BadgeOutlined, CalendarMonthRounded, GroupRounded, MeetingRoomOutlined, MoreHorizRounded, PersonAddAltRounded, ScheduleRounded, TrendingUpRounded, VerifiedUserOutlined } from "@mui/icons-material";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
+import { managementSession } from "../../domain/auth/managementSession";
 import styles from "./SuperAdminDashboardPage.module.css";
 
 const stats = [
@@ -26,7 +27,7 @@ const quickActions = [
 export function SuperAdminDashboardPage() {
   return (
     <div className={styles.shell}>
-      <AdminSidebar />
+      <AdminSidebar session={managementSession} />
       <div className={styles.main}>
         <AdminTopbar />
         <main className={styles.content}>

@@ -4,14 +4,14 @@ import { superAdminNavigation } from "../config/superAdminNavigation";
 import { Brand } from "./Brand";
 import styles from "./AdminSidebar.module.css";
 
-export function AdminSidebar() {
+export function AdminSidebar({ session }) {
   const navigate = useNavigate();
   const location = useLocation();
 
   return (
     <aside className={styles.sidebar}>
       <Brand />
-      <div className={styles.platform}><span>SÜPER ADMIN</span><small>Yaşar Bilgi yönetimi</small></div>
+      <div className={styles.platform}><span>{session?.user.roleLabel?.toLocaleUpperCase("tr-TR") || "SÜPER ADMIN"}</span><small>{session?.user.companyName || "Yaşar Bilgi"} yönetimi</small></div>
       <nav className={styles.nav} aria-label="Süper admin menüsü">
         <small>ŞİRKET YÖNETİMİ</small>
         {superAdminNavigation.map(({ badge, icon: Icon, label, path }) => {
@@ -26,7 +26,7 @@ export function AdminSidebar() {
       <div className={styles.bottom}>
         <button className={styles.button} type="button"><HelpOutlineRounded /><span>Yardım merkezi</span></button>
         <button className={styles.button} type="button" onClick={() => navigate("/super-admin/login")}><LogoutRounded /><span>Çıkış yap</span></button>
-        <div className={styles.identity}><span className={styles.avatar}>YB</span><div><b>Yaşar Bilgi</b><small>Süper admin</small></div></div>
+        <div className={styles.identity}><span className={styles.avatar}>{session?.user.initials || "YB"}</span><div><b>{session?.user.companyName || "Yaşar Bilgi"}</b><small>{session?.user.roleLabel || "Süper admin"}</small></div></div>
       </div>
     </aside>
   );
