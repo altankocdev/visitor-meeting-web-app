@@ -11,10 +11,12 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { getApiErrorMessage } from "../../infrastructure/api/apiError";
 import { authRepository } from "../../infrastructure/repositories/authRepository";
+import { useAuth } from "../auth/AuthContext";
 import styles from "./LoginPage.module.css";
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const { refreshSession } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -41,7 +43,10 @@ export function LoginPage() {
         password: values.password,
         remember: values.remember,
       });
-      navigate(session.mustChangePassword ? "/change-password" : "/dashboard");
+      const activeSession = await refreshSession();
+      navigate(session.mustChangePassword
+        ? "/change-password"
+        : activeSession?.user?.owner ? "/management/dashboard" : "/dashboard");
     } catch (error) {
       setSubmitError(getApiErrorMessage(error, "Oturum açılamadı. Bilgilerinizi kontrol edin."));
     } finally {

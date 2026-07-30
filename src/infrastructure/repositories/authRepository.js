@@ -1,5 +1,6 @@
 import { apiClient, unwrapApiResponse } from "../api/client";
 import { tokenStorage } from "../auth/tokenStorage";
+import { getAccessTokenClaims } from "../auth/jwtClaims";
 
 export const authRepository = {
   async login({ companySlug, identifier, password, remember = true }) {
@@ -23,8 +24,20 @@ export const authRepository = {
     return tokens;
   },
 
-  changePassword: (currentPassword, newPassword) =>
-    apiClient.post("/auth/change-password", { currentPassword, newPassword }),
+  async me() {
+    const claims = getAccessTokenClaims();
+    const isPlatformAdmin = claims?.tokenType === "SUPER_ADMIN";
+    const endpoint = isPlatformAdmin ? `/platform/admins/${claims.sub}` : "/auth/me";
+    const response = await apiClient.get(endpoint);
+    return { data: unwrapApiResponse(response), isPlatformAdmin };
+  },
+
+  async changePassword(currentPassword, newPassword) {
+    const response = await apiClient.post("/auth/change-password", { currentPassword, newPassword });
+    const tokens = unwrapApiResponse(response);
+    tokenStorage.update(tokens);
+    return tokens;
+  },
 
   async logout() {
     const refreshToken = tokenStorage.getRefreshToken();

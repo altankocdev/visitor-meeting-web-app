@@ -4,15 +4,15 @@ import "dayjs/locale/tr";
 import { useMemo, useState } from "react";
 import { managementSession } from "../../domain/auth/managementSession";
 import { hasPermission, permissions } from "../../domain/auth/permissions";
-import { adminReservations as seedReservations, reservationStatusMeta } from "../../domain/models/adminReservations";
-import { managedRooms } from "../../domain/models/roomManagement";
+import { reservationStatusMeta } from "../../domain/models/adminReservations";
 import { AdminReservationDetailsDialog, ReservationDecisionDialog } from "../components/AdminReservationDialogs";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import styles from "./AdminReservationsPage.module.css";
 
 export function AdminReservationsPage({ session = managementSession }) {
-  const [reservations, setReservations] = useState(seedReservations);
+  const [reservations, setReservations] = useState([]);
+  const managedRooms = [];
   const [filters, setFilters] = useState({ search: "", roomId: "", status: "", date: "" });
   const [detailsTarget, setDetailsTarget] = useState(null);
   const [decision, setDecision] = useState(null);

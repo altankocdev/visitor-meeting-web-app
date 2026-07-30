@@ -21,7 +21,6 @@ import {
 import dayjs from "dayjs";
 import "dayjs/locale/tr";
 import { useEffect, useMemo, useState } from "react";
-import { employeeSession } from "../../domain/auth/employeeSession";
 import {
   reservationStatuses,
   rooms,
@@ -35,6 +34,7 @@ import { getApiErrorMessage } from "../../infrastructure/api/apiError";
 import { getAccessTokenClaims } from "../../infrastructure/auth/jwtClaims";
 import { mapReservationFormToApi, mapReservationFromApi } from "../../infrastructure/mappers/reservationMapper";
 import { reservationRepository } from "../../infrastructure/repositories/reservationRepository";
+import { useAuth } from "../auth/AuthContext";
 
 const referenceDate = dayjs();
 
@@ -45,7 +45,8 @@ function getDisplayStatus(reservation) {
 }
 
 export function ReservationsPage() {
-  const user = employeeSession.user;
+  const { session } = useAuth();
+  const user = session.user;
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState(null);
@@ -143,7 +144,7 @@ export function ReservationsPage() {
 
   return (
     <div className={styles.shell}>
-      <Sidebar session={employeeSession} />
+      <Sidebar />
       <div className={styles.main}>
         <Topbar user={user} />
 

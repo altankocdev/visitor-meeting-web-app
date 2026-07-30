@@ -2,7 +2,6 @@ import { AddRounded, ApartmentRounded, CheckCircleOutlineRounded, EditOutlined, 
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { managementSession } from "../../domain/auth/managementSession";
-import { departmentRecords as seedDepartments } from "../../domain/models/users";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import { DepartmentDetailsDialog, DepartmentFormDialog, DepartmentStatusDialog } from "../components/DepartmentDialogs";
@@ -10,7 +9,7 @@ import styles from "./DepartmentsPage.module.css";
 
 export function DepartmentsPage({ session = managementSession }) {
   const navigate = useNavigate();
-  const [departments, setDepartments] = useState(seedDepartments);
+  const [departments, setDepartments] = useState([]);
   const [filters, setFilters] = useState({ search: "", status: "" });
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);

@@ -1,14 +1,14 @@
 import { AddRounded, EditOutlined, GroupsOutlined, LockOutlined, MoreHorizRounded, SearchRounded, ShieldOutlined, VerifiedUserOutlined } from "@mui/icons-material";
 import { useMemo, useState } from "react";
 import { managementSession } from "../../domain/auth/managementSession";
-import { permissionGroups, roles as seedRoles } from "../../domain/models/roles";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import { RoleDetailsDialog, RoleDialog } from "../components/RoleDialog";
 import styles from "./RolesPage.module.css";
 
 export function RolesPage({ session = managementSession }) {
-  const [roles, setRoles] = useState(seedRoles);
+  const [roles, setRoles] = useState([]);
+  const permissionGroups = [];
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);

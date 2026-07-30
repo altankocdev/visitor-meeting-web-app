@@ -9,9 +9,10 @@ import {
   MenuItem,
   TextField,
 } from "@mui/material";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { employeeSession } from "../../domain/auth/employeeSession";
-import { companyUsers } from "../../domain/models/companyUsers";
+import { userRepository } from "../../infrastructure/repositories/userRepository";
+import { useAuth } from "../auth/AuthContext";
 import styles from "./BookingDialog.module.css";
 
 const defaultValues = {
@@ -26,6 +27,8 @@ const defaultValues = {
 };
 
 export function BookingDialog({ open, onClose, rooms, onCreate }) {
+  const { session } = useAuth();
+  const [userOptions, setUserOptions] = useState([]);
   const {
     control,
     handleSubmit,
@@ -37,21 +40,25 @@ export function BookingDialog({ open, onClose, rooms, onCreate }) {
 
   const participantCount = Number(watch("participantCount")) || 0;
   const participantUsernames = watch("participantUsernames");
-  const userOptions = companyUsers.filter(
-    (user) => user.username !== employeeSession.user.username,
-  );
+  useEffect(() => {
+    if (!open || !session?.user.companyId) return;
+    let active = true;
+    userRepository.directory(session.user.companyId, "", { size: 100 })
+      .then((page) => {
+        if (active) setUserOptions(page.content.filter((user) => user.id !== session.user.id));
+      })
+      .catch(() => {
+        if (active) setUserOptions([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [open, session?.user.companyId, session?.user.id]);
 
   const submit = (data) => {
-    const participantIds = data.participantUsernames
-      .map((username) => companyUsers.find((user) => user.username === username)?.id)
-      .filter(Boolean);
-
     onCreate({
       ...data,
-      participantIds,
-      participantUsernames: data.participantUsernames.map((username) =>
-        username.replace(/^@/, "").trim().toLocaleLowerCase("tr-TR"),
-      ),
+      participantIds: data.participantUsernames.map((user) => user.id),
     });
     reset(defaultValues);
     onClose();
@@ -115,36 +122,27 @@ export function BookingDialog({ open, onClose, rooms, onCreate }) {
             name="participantUsernames"
             control={control}
             rules={{
-              validate: (values) => values.every((username) =>
-                /^[a-z0-9._-]{3,50}$/i.test(username.replace(/^@/, "")),
-              ) || "Kullanıcı adları 3–50 karakter olmalı; yalnızca harf, rakam, nokta, tire ve alt çizgi içermelidir.",
+              validate: (values) => values.every((user) => Number.isInteger(user.id))
+                || "Katılımcıları listeden seçin.",
             }}
             render={({ field }) => (
               <Autocomplete
                 multiple
-                freeSolo
                 options={userOptions}
                 value={field.value}
-                getOptionLabel={(option) => typeof option === "string" ? option : option.username}
-                isOptionEqualToValue={(option, value) =>
-                  option.username === (typeof value === "string" ? value : value.username)
-                }
+                getOptionLabel={(option) => `${option.fullName} · ${option.email}`}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
                 onChange={(_, values) => {
-                  const usernames = [...new Set(values.map((value) =>
-                    (typeof value === "string" ? value : value.username)
-                      .replace(/^@/, "")
-                      .trim(),
-                  ).filter(Boolean))];
-                  field.onChange(usernames);
-                  if (participantCount < usernames.length) {
-                    setValue("participantCount", usernames.length, { shouldValidate: true });
+                  field.onChange(values);
+                  if (participantCount < values.length) {
+                    setValue("participantCount", values.length, { shouldValidate: true });
                   }
                 }}
                 renderTags={(values, getTagProps) => values.map((value, index) => (
                   <Chip
                     {...getTagProps({ index })}
                     key={value}
-                    label={`@${typeof value === "string" ? value : value.username}`}
+                    label={value.fullName}
                     size="small"
                     className={styles.userChip}
                   />
@@ -152,7 +150,7 @@ export function BookingDialog({ open, onClose, rooms, onCreate }) {
                 renderOption={(props, option) => (
                   <li {...props} key={option.id}>
                     <div className={styles.userOption}>
-                      <strong>@{option.username}</strong>
+                      <strong>{option.fullName}</strong>
                       <small>{option.email}</small>
                     </div>
                   </li>
@@ -160,10 +158,10 @@ export function BookingDialog({ open, onClose, rooms, onCreate }) {
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Katılımcıları kullanıcı adıyla ekle"
-                    placeholder="Kullanıcı adı yazıp Enter'a basın"
+                    label="Katılımcı ekle"
+                    placeholder="Ad veya e-posta ile ara"
                     error={Boolean(errors.participantUsernames)}
-                    helperText={errors.participantUsernames?.message || "Şirket kullanıcısı seçin veya kullanıcı adını yazıp Enter'a basın."}
+                    helperText={errors.participantUsernames?.message || "Veritabanındaki şirket kullanıcılarından seçim yapın."}
                   />
                 )}
               />

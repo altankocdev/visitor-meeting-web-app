@@ -1,29 +1,78 @@
 import { AddRounded, CheckCircleOutlineRounded, EditOutlined, GroupsOutlined, MoreHorizRounded, PersonOffOutlined, SearchRounded, ShieldOutlined } from "@mui/icons-material";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { managementSession } from "../../domain/auth/managementSession";
 import { hasPermission, permissions } from "../../domain/auth/permissions";
-import { companyRoles, departments, jobTitles, users as seedUsers } from "../../domain/models/users";
+import { getApiErrorMessage } from "../../infrastructure/api/apiError";
+import { organizationRepository } from "../../infrastructure/repositories/organizationRepository";
+import { userRepository } from "../../infrastructure/repositories/userRepository";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import { UserFormDialog } from "../components/UserFormDialog";
 import { EditUserDialog, UserDetailsDialog, UserStatusDialog } from "../components/UserManagementDialogs";
 import styles from "./UsersPage.module.css";
+import { useAuth } from "../auth/AuthContext";
 
-export function UsersPage({ session = managementSession }) {
+function mapUser(user) {
+  return {
+    ...user,
+    department: user.department?.name ?? "Belirtilmedi",
+    jobTitle: user.jobTitle?.name ?? "Belirtilmedi",
+    roles: user.roles?.map((role) => role.name) ?? [],
+  };
+}
+
+export function UsersPage() {
+  const { session } = useAuth();
   const [searchParams] = useSearchParams();
   const departmentFromUrl = searchParams.get("department") || "";
-  const [users, setUsers] = useState(seedUsers);
+  const [users, setUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [companyRoles, setCompanyRoles] = useState([]);
+  const [jobTitles, setJobTitles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [statusTarget, setStatusTarget] = useState(null);
   const [detailsTarget, setDetailsTarget] = useState(null);
   const [filters, setFilters] = useState({ search: "", department: departmentFromUrl, role: "", status: "" });
-  const canCreate = hasPermission(session.permissions, permissions.USER_CREATE);
+  const canCreate = session.isPlatformAdmin
+    || hasPermission(session.permissions, permissions.USER_CREATE);
   const canUpdate = hasPermission(session.permissions, permissions.USER_UPDATE);
   const canDeactivate = hasPermission(session.permissions, permissions.USER_DEACTIVATE);
   const canActivate = hasPermission(session.permissions, permissions.USER_ACTIVATE);
   const canAssignRole = hasPermission(session.permissions, permissions.USER_ASSIGN_ROLE);
+  const companyId = session.user.companyId;
+
+  useEffect(() => {
+    if (!companyId) {
+      setLoading(false);
+      setApiError("Şirket kullanıcıları için şirket kapsamlı bir oturum gereklidir.");
+      return;
+    }
+    let active = true;
+    setLoading(true);
+    Promise.all([
+      userRepository.list(companyId, { size: 200 }),
+      organizationRepository.departments(companyId, { size: 200 }),
+      organizationRepository.roles(companyId, { size: 200 }),
+      organizationRepository.jobTitles({ size: 200 }),
+    ]).then(([userPage, departmentPage, rolePage, jobTitlePage]) => {
+      if (!active) return;
+      setUsers(userPage.content.map(mapUser));
+      setDepartments(departmentPage.content);
+      setCompanyRoles(rolePage.content);
+      setJobTitles(jobTitlePage.content);
+      setApiError("");
+    }).catch((error) => {
+      if (active) setApiError(getApiErrorMessage(error, "Kullanıcılar yüklenemedi."));
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [companyId]);
 
   const filteredUsers = useMemo(() => users.filter((user) => {
     const search = filters.search.trim().toLocaleLowerCase("tr-TR");
@@ -34,15 +83,21 @@ export function UsersPage({ session = managementSession }) {
       && (!filters.status || String(user.active) === filters.status);
   }), [filters, users]);
 
-  const createUser = (data) => {
-    const department = departments.find((item) => item.id === Number(data.departmentId));
-    const jobTitle = jobTitles.find((item) => item.id === Number(data.jobTitleId));
-    const roles = companyRoles.filter((item) => data.roleIds.map(Number).includes(item.id)).map((item) => item.name);
-    setUsers((current) => [{
-      id: Date.now(), firstName: data.firstName, lastName: data.lastName, username: data.username,
-      email: data.email, department: department?.name || "Belirtilmedi", jobTitle: jobTitle?.name || "Belirtilmedi",
-      roles, active: true, mustChangePassword: true,
-    }, ...current]);
+  const createUser = async (data) => {
+    try {
+      const created = await userRepository.create(companyId, {
+        ...data,
+        departmentId: data.departmentId ? Number(data.departmentId) : null,
+        jobTitleId: data.jobTitleId ? Number(data.jobTitleId) : null,
+        roleIds: data.roleIds.map(Number),
+      });
+      setUsers((current) => [mapUser(created), ...current]);
+      setApiError("");
+      return true;
+    } catch (error) {
+      setApiError(getApiErrorMessage(error, "Kullanıcı oluşturulamadı."));
+      return false;
+    }
   };
 
   const updateUser = (data) => {
@@ -52,18 +107,29 @@ export function UsersPage({ session = managementSession }) {
     setEditTarget(null);
   };
 
-  const toggleUserStatus = () => {
-    setUsers((current) => current.map((user) => user.id === statusTarget.id
-      ? { ...user, active: !user.active }
-      : user));
-    setStatusTarget(null);
+  const toggleUserStatus = async () => {
+    try {
+      const action = statusTarget.active ? userRepository.deactivate : userRepository.activate;
+      await action(companyId, statusTarget.id);
+      setUsers((current) => current.map((user) => user.id === statusTarget.id
+        ? { ...user, active: !user.active }
+        : user));
+      setStatusTarget(null);
+    } catch (error) {
+      setApiError(getApiErrorMessage(error, "Kullanıcı durumu güncellenemedi."));
+    }
   };
 
-  const resetTemporaryPassword = () => {
-    setUsers((current) => current.map((user) => user.id === detailsTarget.id
-      ? { ...user, mustChangePassword: true }
-      : user));
-    setDetailsTarget((current) => ({ ...current, mustChangePassword: true }));
+  const resetTemporaryPassword = async () => {
+    try {
+      await userRepository.forcePasswordReset(companyId, detailsTarget.id);
+      setUsers((current) => current.map((user) => user.id === detailsTarget.id
+        ? { ...user, mustChangePassword: true }
+        : user));
+      setDetailsTarget((current) => ({ ...current, mustChangePassword: true }));
+    } catch (error) {
+      setApiError(getApiErrorMessage(error, "Şifre sıfırlama zorunluluğu ayarlanamadı."));
+    }
   };
 
   return (
@@ -76,6 +142,7 @@ export function UsersPage({ session = managementSession }) {
             <div><small>ŞİRKET YÖNETİMİ</small><h1>Kullanıcılar</h1><p>Çalışanları görüntüleyin; departman, unvan ve rol bilgilerini yönetin.</p></div>
             {canCreate && <button className={styles.createButton} type="button" onClick={() => setDialogOpen(true)}><AddRounded /> Yeni kullanıcı</button>}
           </header>
+          {apiError && <p role="alert">{apiError}</p>}
 
           <section className={styles.stats}>
             <article><span className={styles.blue}><GroupsOutlined /></span><div><small>Toplam kullanıcı</small><strong>{users.length}</strong><p>Şirket hesabına kayıtlı</p></div></article>
@@ -85,7 +152,7 @@ export function UsersPage({ session = managementSession }) {
           </section>
 
           <section className={styles.panel}>
-            <div className={styles.panelHead}><div><h2>Kullanıcı listesi</h2><p>{filteredUsers.length} kullanıcı gösteriliyor</p></div></div>
+            <div className={styles.panelHead}><div><h2>Kullanıcı listesi</h2><p>{loading ? "Kullanıcılar yükleniyor..." : `${filteredUsers.length} kullanıcı gösteriliyor`}</p></div></div>
             <div className={styles.filters}>
               <label className={styles.search}><SearchRounded /><input value={filters.search} placeholder="Ad, kullanıcı adı veya e-posta ara..." onChange={(event) => setFilters((value) => ({ ...value, search: event.target.value }))} /></label>
               <select value={filters.department} onChange={(event) => setFilters((value) => ({ ...value, department: event.target.value }))}><option value="">Tüm departmanlar</option>{departments.map((item) => <option key={item.id}>{item.name}</option>)}</select>
@@ -110,8 +177,8 @@ export function UsersPage({ session = managementSession }) {
           </section>
         </main>
       </div>
-      {canCreate && <UserFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onCreate={createUser} />}
-      <EditUserDialog user={editTarget} onClose={() => setEditTarget(null)} onSave={updateUser} />
+      {canCreate && <UserFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onCreate={createUser} departments={departments} jobTitles={jobTitles} companyRoles={companyRoles} />}
+      <EditUserDialog user={editTarget} onClose={() => setEditTarget(null)} onSave={updateUser} departments={departments} jobTitles={jobTitles} companyRoles={companyRoles} />
       <UserStatusDialog user={statusTarget} onClose={() => setStatusTarget(null)} onConfirm={toggleUserStatus} />
       <UserDetailsDialog
         user={detailsTarget}

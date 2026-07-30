@@ -1,7 +1,6 @@
 import { AddRounded, EditOutlined, GroupsOutlined, LocationOnOutlined, MeetingRoomOutlined, SearchRounded, SettingsSuggestOutlined, ToggleOffOutlined } from "@mui/icons-material";
 import { useMemo, useState } from "react";
 import { managementSession } from "../../domain/auth/managementSession";
-import { managedRooms as seedRooms, roomFeatures as seedFeatures } from "../../domain/models/roomManagement";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import { FeatureFormDialog, ResourceStatusDialog, RoomFormDialog } from "../components/RoomFeatureDialogs";
@@ -9,8 +8,8 @@ import styles from "./RoomManagementPage.module.css";
 
 export function RoomManagementPage({ session = managementSession }) {
   const [tab, setTab] = useState("rooms");
-  const [rooms, setRooms] = useState(seedRooms);
-  const [features, setFeatures] = useState(seedFeatures);
+  const [rooms, setRooms] = useState([]);
+  const [features, setFeatures] = useState([]);
   const [search, setSearch] = useState("");
   const [roomForm, setRoomForm] = useState(false);
   const [featureForm, setFeatureForm] = useState(false);

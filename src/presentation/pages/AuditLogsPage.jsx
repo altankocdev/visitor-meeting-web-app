@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 import "dayjs/locale/tr";
 import { useMemo, useState } from "react";
 import { managementSession } from "../../domain/auth/managementSession";
-import { auditLogs } from "../../domain/models/reporting";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import styles from "./AuditLogsPage.module.css";
@@ -19,6 +18,7 @@ const actionLabels = {
 };
 
 export function AuditLogsPage({ session = managementSession }) {
+  const auditLogs = [];
   const [filters, setFilters] = useState({ search: "", targetType: "", actor: "", date: "" });
   const [selected, setSelected] = useState(null);
   const filtered = useMemo(() => auditLogs.filter((log) => {

@@ -1,7 +1,6 @@
 import { BadgeOutlined, CloseRounded, EditOutlined, EmailOutlined, LockResetOutlined, PersonOffOutlined, PersonOutlineRounded, SaveOutlined, ToggleOnOutlined, VerifiedUserOutlined } from "@mui/icons-material";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { companyRoles, departments, jobTitles } from "../../domain/models/users";
 import styles from "./UserManagementDialogs.module.css";
 
 function DialogShell({ children, eyebrow, icon: Icon, onClose, subtitle, title, wide = false }) {
@@ -15,7 +14,7 @@ function DialogShell({ children, eyebrow, icon: Icon, onClose, subtitle, title, 
   );
 }
 
-export function EditUserDialog({ onClose, onSave, user }) {
+export function EditUserDialog({ companyRoles, departments, jobTitles, onClose, onSave, user }) {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
   useEffect(() => {
     if (user) reset({
