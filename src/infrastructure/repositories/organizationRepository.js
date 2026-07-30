@@ -5,6 +5,10 @@ export const organizationRepository = {
     const response = await apiClient.get(`/companies/${companyId}/departments`, { params });
     return unwrapApiResponse(response);
   },
+  async createDepartment(companyId, data) {
+    const response = await apiClient.post(`/companies/${companyId}/departments`, data);
+    return unwrapApiResponse(response);
+  },
   async roles(companyId, params = {}) {
     const response = await apiClient.get("/roles", { params: { companyId, ...params } });
     return unwrapApiResponse(response);
@@ -14,4 +18,3 @@ export const organizationRepository = {
     return unwrapApiResponse(response);
   },
 };
-
