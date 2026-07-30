@@ -11,12 +11,12 @@ import {
 import { Button } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { employeeSession } from "../../domain/auth/employeeSession";
 import { reservations as seedReservations, rooms } from "../../domain/models/meeting";
 import { BookingDialog } from "../components/BookingDialog";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 import styles from "./RoomsPage.module.css";
+import { useAuth } from "../auth/AuthContext";
 
 const roomDetails = {
   Orion: {
@@ -37,6 +37,7 @@ const roomDetails = {
 };
 
 export function RoomsPage() {
+  const { session } = useAuth();
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [, setReservations] = useState(seedReservations);
@@ -56,7 +57,7 @@ export function RoomsPage() {
         participants: Number(data.participantCount),
         participantUsernames: data.participantUsernames,
         status: "PENDING_APPROVAL",
-        organizer: employeeSession.user.username,
+        organizer: session.user.username,
       },
     ]);
   };

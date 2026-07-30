@@ -9,16 +9,17 @@ import {
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { employeeSession } from "../../domain/auth/employeeSession";
 import { getApiErrorMessage } from "../../infrastructure/api/apiError";
-import { tokenStorage } from "../../infrastructure/auth/tokenStorage";
 import { authRepository } from "../../infrastructure/repositories/authRepository";
+import { useAuth } from "../auth/AuthContext";
 import styles from "./ChangePasswordPage.module.css";
 
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
 export function ChangePasswordPage() {
   const navigate = useNavigate();
+  const { refreshSession, session } = useAuth();
+  const user = session?.user;
   const [showPassword, setShowPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -44,11 +45,8 @@ export function ChangePasswordPage() {
     setSubmitting(true);
     try {
       await authRepository.changePassword(currentPassword, newPassword);
-      tokenStorage.clear();
-      navigate("/login", {
-        replace: true,
-        state: { passwordChanged: true },
-      });
+      const activeSession = await refreshSession();
+      navigate(activeSession?.user?.owner ? "/management/dashboard" : "/dashboard", { replace: true });
     } catch (error) {
       setSubmitError(getApiErrorMessage(error, "Şifre değiştirilemedi."));
     } finally {
@@ -71,10 +69,10 @@ export function ChangePasswordPage() {
         </p>
 
         <div className={styles.account}>
-          <span>{employeeSession.user.initials}</span>
+          <span>{user?.initials}</span>
           <div>
-            <strong>@{employeeSession.user.username}</strong>
-            <small>{employeeSession.user.email}</small>
+            <strong>@{user?.username}</strong>
+            <small>{user?.email}</small>
           </div>
           <ShieldOutlined />
         </div>

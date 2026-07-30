@@ -1,6 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ChangePasswordPage } from "./pages/ChangePasswordPage";
-import { CompleteProfilePage } from "./pages/CompleteProfilePage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { DepartmentsPage } from "./pages/DepartmentsPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -11,6 +10,7 @@ import { AdminReservationsPage } from "./pages/AdminReservationsPage";
 import { AuditLogsPage } from "./pages/AuditLogsPage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { CompanySettingsPage } from "./pages/CompanySettingsPage";
+import { CompanyOwnerDashboardPage } from "./pages/CompanyOwnerDashboardPage";
 import { ManagementNotificationsPage } from "./pages/ManagementNotificationsPage";
 import { RoomsPage } from "./pages/RoomsPage";
 import { RolesPage } from "./pages/RolesPage";
@@ -27,8 +27,8 @@ export function App() {
       <Route path="/super-admin/login" element={<SuperAdminLoginPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/change-password" element={<ChangePasswordPage />} />
-        <Route path="/complete-profile" element={<CompleteProfilePage />} />
         <Route path="/super-admin/dashboard" element={<SuperAdminDashboardPage />} />
+        <Route path="/management/dashboard" element={<CompanyOwnerDashboardPage />} />
         <Route path="/management/users" element={<UsersPage />} />
         <Route path="/management/departments" element={<DepartmentsPage />} />
         <Route path="/management/roles" element={<RolesPage />} />

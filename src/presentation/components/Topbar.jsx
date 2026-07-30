@@ -1,11 +1,14 @@
 import { NotificationsNoneRounded, SearchRounded } from "@mui/icons-material";
 import { IconButton } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { employeeSession } from "../../domain/auth/employeeSession";
+import { useAuth } from "../auth/AuthContext";
 import styles from "./Topbar.module.css";
 
-export function Topbar({ user = employeeSession.user }) {
+export function Topbar({ user: providedUser }) {
   const navigate = useNavigate();
+  const { session } = useAuth();
+  const user = providedUser ?? session?.user;
+  if (!user) return null;
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ")
     || `@${user.username}`;
 

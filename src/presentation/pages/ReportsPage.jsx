@@ -1,12 +1,14 @@
 import { AssessmentOutlined, CancelOutlined, CheckCircleOutlineRounded, DownloadRounded, EventOutlined, MeetingRoomOutlined, TrendingUpRounded } from "@mui/icons-material";
 import { useState } from "react";
 import { managementSession } from "../../domain/auth/managementSession";
-import { reportSummary, roomUsage, weeklyReservationData } from "../../domain/models/reporting";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import styles from "./ReportsPage.module.css";
 
 export function ReportsPage({ session = managementSession }) {
+  const reportSummary = { reservations: 0, approvalRate: 0, roomUsageRate: 0, cancellations: 0 };
+  const roomUsage = [];
+  const weeklyReservationData = [];
   const [range, setRange] = useState("7");
   const max = Math.max(...weeklyReservationData.map((item) => item.approved + item.pending + item.cancelled));
 

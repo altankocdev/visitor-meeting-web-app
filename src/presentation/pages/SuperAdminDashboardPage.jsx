@@ -1,103 +1,190 @@
-import { AddRounded, ApartmentRounded, ArrowForwardRounded, BadgeOutlined, CalendarMonthRounded, GroupRounded, MeetingRoomOutlined, MoreHorizRounded, PersonAddAltRounded, ScheduleRounded, TrendingUpRounded, VerifiedUserOutlined } from "@mui/icons-material";
+import {
+  AddRounded,
+  ApartmentRounded,
+  BusinessRounded,
+  CloseRounded,
+  GroupRounded,
+  HourglassTopRounded,
+} from "@mui/icons-material";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { getApiErrorMessage } from "../../infrastructure/api/apiError";
+import { platformRepository } from "../../infrastructure/repositories/platformRepository";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
-import { managementSession } from "../../domain/auth/managementSession";
-import { adminReservations } from "../../domain/models/adminReservations";
-import { BookingCalendar } from "../components/BookingCalendar";
 import styles from "./SuperAdminDashboardPage.module.css";
 
-const stats = [
-  { label: "Toplam çalışan", value: "146", note: "139 aktif kullanıcı", icon: GroupRounded, tone: "blue" },
-  { label: "Departman", value: "8", note: "12 ekip lideri", icon: ApartmentRounded, tone: "green" },
-  { label: "Toplantı odası", value: "12", note: "10 oda şu an aktif", icon: MeetingRoomOutlined, tone: "orange" },
-  { label: "Bugünkü toplantı", value: "24", note: "3 onay bekliyor", icon: CalendarMonthRounded, tone: "gray" },
-];
+function initials(value = "") {
+  return value.split(/\s+/).filter(Boolean).slice(0, 2)
+    .map((part) => part[0]).join("").toLocaleUpperCase("tr-TR") || "Ş";
+}
 
-const team = [
-  { name: "Ayşe Kaya", username: "@ayse.kaya", department: "İnsan Kaynakları", role: "İK", status: "Aktif", initials: "AK" },
-  { name: "Mert Demir", username: "@mert.demir", department: "Bilgi Teknolojileri", role: "Takım Lideri", status: "Aktif", initials: "MD" },
-  { name: "Selin Aksoy", username: "@selin.aksoy", department: "Yönetim", role: "Departman Asistanı", status: "Aktif", initials: "SA" },
-  { name: "Emre Yıldız", username: "@emre.yildiz", department: "Operasyon", role: "Çalışan", status: "İlk giriş bekleniyor", initials: "EY" },
-];
-
-const quickActions = [
-  { icon: PersonAddAltRounded, title: "Kullanıcı oluştur", detail: "İK, çalışan veya ekip lideri ekleyin.", tone: "blue" },
-  { icon: VerifiedUserOutlined, title: "Rol ve yetki ata", detail: "Kullanıcının erişim kapsamını yönetin.", tone: "green" },
-  { icon: BadgeOutlined, title: "Departman ve unvan", detail: "Şirket organizasyonunu düzenleyin.", tone: "orange" },
-];
+const emptyCompany = {
+  name: "", slug: "", description: "", taxNumber: "", contactEmail: "",
+  contactPhone: "", address: "", industry: "", ownerFirstName: "",
+  ownerLastName: "", ownerEmail: "", ownerUsername: "", ownerPassword: "",
+};
 
 export function SuperAdminDashboardPage() {
-  const calendarReservations = adminReservations
-    .filter((reservation) => ["ACTIVE", "PENDING_APPROVAL"].includes(reservation.status))
-    .map((reservation) => ({
-      id: reservation.id,
-      title: reservation.title,
-      start: reservation.startTime,
-      end: reservation.endTime,
-      roomId: reservation.room.id,
-      room: reservation.room.name,
-      participants: reservation.participants.length,
-      participantUsernames: reservation.participants.map((participant) => participant.email.split("@")[0]),
-      status: reservation.status,
-      organizer: reservation.organizer.fullName,
-      isOwn: true,
-    }));
+  const [companies, setCompanies] = useState([]);
+  const [admins, setAdmins] = useState([]);
+  const [companyTotal, setCompanyTotal] = useState(0);
+  const [pendingTotal, setPendingTotal] = useState(0);
+  const [activeAdminTotal, setActiveAdminTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues: emptyCompany,
+  });
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [companyPage, pendingPage, adminPage, activeAdmins] = await Promise.all([
+        platformRepository.listCompanies(),
+        platformRepository.listPendingCompanies(),
+        platformRepository.listAdmins(),
+        platformRepository.countActiveAdmins(),
+      ]);
+      setCompanies(companyPage.content ?? []);
+      setCompanyTotal(companyPage.totalElements ?? 0);
+      setPendingTotal(pendingPage.totalElements ?? 0);
+      setAdmins(adminPage.content ?? []);
+      setActiveAdminTotal(activeAdmins ?? 0);
+      setError("");
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, "Platform verileri yüklenemedi."));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  const createCompany = async (values) => {
+    setSaving(true);
+    setError("");
+    try {
+      const company = await platformRepository.createCompany(values);
+      await platformRepository.approveCompany(company.id);
+      reset(emptyCompany);
+      setDialogOpen(false);
+      await loadData();
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, "Şirket ve şirket sahibi oluşturulamadı."));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const activeCompanies = useMemo(
+    () => companies.filter((company) => company.active).length,
+    [companies],
+  );
+  const stats = [
+    { label: "Toplam şirket", value: companyTotal, note: "Platforma kayıtlı şirket", icon: BusinessRounded, tone: "blue" },
+    { label: "Aktif şirket", value: activeCompanies, note: "Listelenen aktif kayıt", icon: ApartmentRounded, tone: "green" },
+    { label: "Onay bekleyen", value: pendingTotal, note: "Değerlendirme bekleyen şirket", icon: HourglassTopRounded, tone: "orange" },
+    { label: "Aktif yönetici", value: activeAdminTotal, note: "Platform yöneticisi", icon: GroupRounded, tone: "gray" },
+  ];
+
   return (
     <div className={styles.shell}>
-      <AdminSidebar session={managementSession} />
+      <AdminSidebar />
       <div className={styles.main}>
         <AdminTopbar />
         <main className={styles.content}>
           <header className={styles.heading}>
-            <div><span className={styles.eyebrow}>YAŞAR BİLGİ · ŞİRKET YÖNETİMİ</span><h1>Günaydın, Yönetici</h1><p>Şirketinizdeki kullanıcıları, rolleri ve toplantı operasyonlarını yönetin.</p></div>
-            <button className={styles.primaryAction} type="button"><AddRounded /> Yeni kullanıcı oluştur</button>
+            <div>
+              <span className={styles.eyebrow}>MEETLY · PLATFORM YÖNETİMİ</span>
+              <h1>Platform genel bakışı</h1>
+              <p>Şirketleri ve ilk şirket sahibi hesaplarını yönetin.</p>
+            </div>
+            <button className={styles.primaryAction} type="button" onClick={() => setDialogOpen(true)}>
+              <AddRounded /> Yeni şirket oluştur
+            </button>
           </header>
-
-          <section className={styles.stats} aria-label="Şirket özeti">
+          {error ? <p className={styles.error} role="alert">{error}</p> : null}
+          <section className={styles.stats} aria-label="Platform özeti">
             {stats.map(({ icon: Icon, label, note, tone, value }) => (
-              <article className={styles.stat} key={label}><span className={`${styles.statIcon} ${styles[tone]}`}><Icon /></span><div><small>{label}</small><strong>{value}</strong><p>{note}</p></div></article>
+              <article className={styles.stat} key={label}>
+                <span className={`${styles.statIcon} ${styles[tone]}`}><Icon /></span>
+                <div><small>{label}</small><strong>{loading ? "—" : value}</strong><p>{note}</p></div>
+              </article>
             ))}
           </section>
-
           <section className={styles.grid}>
             <article className={styles.panel}>
-              <header className={styles.panelHeader}><div><h2>Son eklenen kullanıcılar</h2><p>Şirket hesabına en son tanımlanan çalışanlar.</p></div><button type="button">Tüm kullanıcılar <ArrowForwardRounded /></button></header>
+              <header className={styles.panelHeader}><div><h2>Şirketler</h2><p>Backend’de kayıtlı şirketler.</p></div></header>
               <div className={styles.tableWrap}>
                 <table>
-                  <thead><tr><th>KULLANICI</th><th>DEPARTMAN</th><th>ROL</th><th>DURUM</th><th /></tr></thead>
-                  <tbody>{team.map((user) => (
-                    <tr key={user.username}>
-                      <td><div className={styles.company}><span>{user.initials}</span><div><b>{user.name}</b><small>{user.username}</small></div></div></td>
-                      <td>{user.department}</td><td>{user.role}</td>
-                      <td><span className={user.status === "Aktif" ? styles.activeStatus : styles.pending}>{user.status}</span></td>
-                      <td><button className={styles.more} type="button" aria-label={`${user.name} işlemleri`}><MoreHorizRounded /></button></td>
-                    </tr>
-                  ))}</tbody>
+                  <thead><tr><th>ŞİRKET</th><th>İLETİŞİM</th><th>SEKTÖR</th><th>DURUM</th></tr></thead>
+                  <tbody>
+                    {!loading && companies.length === 0 ? <tr><td colSpan="4">Henüz şirket kaydı bulunmuyor.</td></tr> : companies.map((company) => (
+                      <tr key={company.id}>
+                        <td><div className={styles.company}><span>{initials(company.name)}</span><div><b>{company.name}</b><small>{company.slug}</small></div></div></td>
+                        <td>{company.contactEmail || "—"}</td><td>{company.industry || "—"}</td>
+                        <td><span className={company.active ? styles.activeStatus : styles.pending}>{company.status}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
                 </table>
               </div>
             </article>
-
             <aside className={styles.activity}>
-              <header className={styles.panelHeader}><div><h2>Hızlı işlemler</h2><p>Sık kullanılan yönetim araçları.</p></div></header>
-              <div className={styles.activityList}>{quickActions.map(({ detail, icon: Icon, title, tone }) => (
-                <button className={styles.quickItem} type="button" key={title}><span className={`${styles.activityIcon} ${styles[tone]}`}><Icon /></span><div><b>{title}</b><p>{detail}</p></div><ArrowForwardRounded /></button>
-              ))}</div>
-              <div className={styles.today}><span><ScheduleRounded /></span><div><b>Bugünün özeti</b><p>24 toplantı · 38 ziyaretçi · 3 onay</p></div></div>
-              <button className={styles.auditButton} type="button"><TrendingUpRounded /> Yönetim raporlarını incele</button>
+              <header className={styles.panelHeader}><div><h2>Platform yöneticileri</h2><p>Yetkili hesaplar.</p></div></header>
+              <div className={styles.activityList}>
+                {!loading && admins.length === 0 ? <p>Yönetici kaydı bulunmuyor.</p> : admins.map((admin) => (
+                  <div className={styles.activityItem} key={admin.id}>
+                    <span className={`${styles.activityIcon} ${styles.blue}`}><GroupRounded /></span>
+                    <div><b>{admin.fullName}</b><p>{admin.email}</p><small>{admin.active ? "Aktif" : "Pasif"}</small></div>
+                  </div>
+                ))}
+              </div>
             </aside>
-          </section>
-
-          <section className={styles.calendarSection}>
-            <BookingCalendar
-              reservations={calendarReservations}
-              initialDate="2026-07-27"
-              mode="admin"
-              title="Şirket toplantı ve oda takvimi"
-              description="Tüm toplantı odalarının doluluk durumunu ve rezervasyon detaylarını saat bazında görüntüleyin."
-            />
           </section>
         </main>
       </div>
+
+      {dialogOpen ? (
+        <div className={styles.backdrop} role="presentation" onMouseDown={(event) => {
+          if (event.target === event.currentTarget && !saving) setDialogOpen(false);
+        }}>
+          <section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="company-dialog-title">
+            <header>
+              <div><small>PLATFORM YÖNETİMİ</small><h2 id="company-dialog-title">Şirket ve sahibi oluştur</h2><p>Şirket onaylanır; varsayılan roller ve özellikler otomatik hazırlanır.</p></div>
+              <button type="button" disabled={saving} onClick={() => setDialogOpen(false)} aria-label="Kapat"><CloseRounded /></button>
+            </header>
+            <form onSubmit={handleSubmit(createCompany)}>
+              <h3>Şirket bilgileri</h3>
+              <div className={styles.formGrid}>
+                <label>Şirket adı<input {...register("name", { required: "Şirket adı zorunludur." })} />{errors.name && <i>{errors.name.message}</i>}</label>
+                <label>Şirket adresi (slug)<input {...register("slug", { required: "Slug zorunludur.", pattern: { value: /^[a-z0-9-]+$/, message: "Küçük harf, rakam ve tire kullanın." } })} />{errors.slug && <i>{errors.slug.message}</i>}</label>
+                <label>İletişim e-postası<input type="email" {...register("contactEmail", { required: "E-posta zorunludur." })} />{errors.contactEmail && <i>{errors.contactEmail.message}</i>}</label>
+                <label>Telefon<input {...register("contactPhone")} /></label>
+                <label>Sektör<input {...register("industry")} /></label>
+                <label>Vergi numarası<input {...register("taxNumber")} /></label>
+                <label className={styles.full}>Adres<input {...register("address")} /></label>
+                <label className={styles.full}>Açıklama<textarea rows="2" {...register("description")} /></label>
+              </div>
+              <h3>İlk şirket sahibi</h3>
+              <div className={styles.formGrid}>
+                <label>Ad<input {...register("ownerFirstName", { required: "Ad zorunludur." })} />{errors.ownerFirstName && <i>{errors.ownerFirstName.message}</i>}</label>
+                <label>Soyad<input {...register("ownerLastName", { required: "Soyad zorunludur." })} />{errors.ownerLastName && <i>{errors.ownerLastName.message}</i>}</label>
+                <label>Kullanıcı adı<input {...register("ownerUsername", { required: "Kullanıcı adı zorunludur." })} />{errors.ownerUsername && <i>{errors.ownerUsername.message}</i>}</label>
+                <label>E-posta<input type="email" {...register("ownerEmail", { required: "E-posta zorunludur." })} />{errors.ownerEmail && <i>{errors.ownerEmail.message}</i>}</label>
+                <label className={styles.full}>Geçici şifre<input type="password" {...register("ownerPassword", { required: "Şifre zorunludur.", minLength: { value: 8, message: "En az 8 karakter olmalıdır." } })} />{errors.ownerPassword && <i>{errors.ownerPassword.message}</i>}</label>
+              </div>
+              <footer>
+                <button type="button" disabled={saving} onClick={() => setDialogOpen(false)}>Vazgeç</button>
+                <button className={styles.submit} type="submit" disabled={saving}>{saving ? "Oluşturuluyor…" : "Şirketi ve sahibini oluştur"}</button>
+              </footer>
+            </form>
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }

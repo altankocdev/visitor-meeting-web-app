@@ -1,17 +1,17 @@
 import { CloseRounded, LockOutlined, PersonAddAltRounded } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
-import { companyRoles, departments, jobTitles } from "../../domain/models/users";
 import styles from "./UserFormDialog.module.css";
 
-export function UserFormDialog({ open, onClose, onCreate }) {
+export function UserFormDialog({ companyRoles, departments, jobTitles, open, onClose, onCreate }) {
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     defaultValues: { roleIds: ["6"] },
   });
 
   if (!open) return null;
 
-  const submit = (data) => {
-    onCreate(data);
+  const submit = async (data) => {
+    const created = await onCreate(data);
+    if (!created) return;
     reset({ roleIds: ["6"] });
     onClose();
   };

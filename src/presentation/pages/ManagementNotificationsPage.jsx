@@ -4,7 +4,6 @@ import "dayjs/locale/tr";
 import { useMemo, useState } from "react";
 import { managementSession } from "../../domain/auth/managementSession";
 import { hasPermission, permissions } from "../../domain/auth/permissions";
-import { notifications as seedNotifications } from "../../domain/models/settings";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import styles from "./ManagementNotificationsPage.module.css";
@@ -17,7 +16,7 @@ const categoryMeta = {
 };
 
 export function ManagementNotificationsPage({ session = managementSession }) {
-  const [items, setItems] = useState(seedNotifications);
+  const [items, setItems] = useState([]);
   const [filter, setFilter] = useState("ALL");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [preferences, setPreferences] = useState({ reservation: true, user: true, room: true, security: true, email: true });

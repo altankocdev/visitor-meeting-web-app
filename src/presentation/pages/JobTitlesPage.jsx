@@ -1,15 +1,14 @@
 import { AddRounded, BadgeOutlined, CheckCircleOutlineRounded, EditOutlined, GroupsOutlined, MoreHorizRounded, SearchRounded, ToggleOffOutlined, VerifiedUserOutlined } from "@mui/icons-material";
 import { useMemo, useState } from "react";
 import { managementSession } from "../../domain/auth/managementSession";
-import { jobTitleRecords as seedJobTitles } from "../../domain/models/jobTitles";
-import { roles } from "../../domain/models/roles";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import { JobTitleDetailsDialog, JobTitleFormDialog, JobTitleStatusDialog } from "../components/JobTitleDialogs";
 import styles from "./JobTitlesPage.module.css";
 
 export function JobTitlesPage({ session = managementSession }) {
-  const [jobTitles, setJobTitles] = useState(seedJobTitles);
+  const [jobTitles, setJobTitles] = useState([]);
+  const roles = [];
   const [filters, setFilters] = useState({ search: "", status: "", roleId: "" });
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);

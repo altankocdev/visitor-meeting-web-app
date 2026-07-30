@@ -1,14 +1,17 @@
 import { HelpOutlineRounded, LogoutRounded } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
-import { employeeSession } from "../../domain/auth/employeeSession";
 import { hasPermission } from "../../domain/auth/permissions";
+import { useAuth } from "../auth/AuthContext";
 import { employeeNavigation } from "../config/employeeNavigation";
 import { Brand } from "./Brand";
 import styles from "./Sidebar.module.css";
 
-export function Sidebar({ session = employeeSession }) {
+export function Sidebar({ session: providedSession }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { session: authenticatedSession, logout } = useAuth();
+  const session = providedSession ?? authenticatedSession;
+  if (!session) return null;
   const visibleItems = employeeNavigation.filter((item) =>
     hasPermission(session.permissions, item.permission),
   );
@@ -45,7 +48,10 @@ export function Sidebar({ session = employeeSession }) {
           Yardım merkezi
         </button>
 
-        <button className={styles.button} type="button" onClick={() => navigate("/login")}>
+        <button className={styles.button} type="button" onClick={async () => {
+          await logout();
+          navigate("/login", { replace: true });
+        }}>
           <LogoutRounded />
           Çıkış yap
         </button>

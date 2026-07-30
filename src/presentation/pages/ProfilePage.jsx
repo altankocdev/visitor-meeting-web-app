@@ -9,13 +9,10 @@ import {
 } from "@mui/icons-material";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  completeEmployeeProfile,
-  employeeSession,
-} from "../../domain/auth/employeeSession";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 import styles from "./ProfilePage.module.css";
+import { useAuth } from "../auth/AuthContext";
 
 const jobTitles = [
   { id: "", name: "Pozisyon seçilmedi" },
@@ -27,7 +24,8 @@ const jobTitles = [
 
 export function ProfilePage() {
   const [saved, setSaved] = useState(false);
-  const user = employeeSession.user;
+  const { session } = useAuth();
+  const user = session.user;
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ")
     || `@${user.username}`;
   const {
@@ -45,23 +43,15 @@ export function ProfilePage() {
   });
 
   const onSubmit = (data) => {
-    const selectedJobTitle = jobTitles.find((item) => item.id === data.jobTitle);
-
-    completeEmployeeProfile({
-      ...data,
-      jobTitle: selectedJobTitle?.id
-        ? { id: selectedJobTitle.id, name: selectedJobTitle.name }
-        : null,
-    });
     setSaved(true);
   };
 
   return (
     <div className={styles.shell}>
-      <Sidebar session={employeeSession} />
+      <Sidebar />
 
       <div className={styles.main}>
-        <Topbar user={employeeSession.user} />
+        <Topbar />
 
         <main className={styles.content}>
           <div className={styles.pageHead}>

@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { tokenStorage } from "../../infrastructure/auth/tokenStorage";
+import { useAuth } from "../auth/AuthContext";
 
 export function ProtectedRoute() {
   const navigate = useNavigate();
+  const { loading, session } = useAuth();
   const authenticated = Boolean(tokenStorage.getAccessToken());
 
   useEffect(() => {
@@ -15,6 +17,6 @@ export function ProtectedRoute() {
     return () => window.removeEventListener("meetly:session-expired", handleSessionExpired);
   }, [navigate]);
 
-  return authenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  if (authenticated && loading) return null;
+  return authenticated && session ? <Outlet /> : <Navigate to="/login" replace />;
 }
-

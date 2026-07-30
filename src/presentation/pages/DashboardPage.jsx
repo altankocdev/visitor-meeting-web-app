@@ -2,7 +2,6 @@ import { AddRounded, CalendarMonthOutlined } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import dayjs from "dayjs";
 import { useMemo, useState } from "react";
-import { employeeSession } from "../../domain/auth/employeeSession";
 import { hasPermission, permissions } from "../../domain/auth/permissions";
 import { reservations as seedReservations, rooms } from "../../domain/models/meeting";
 import { BookingCalendar } from "../components/BookingCalendar";
@@ -12,13 +11,15 @@ import { StatCards } from "../components/StatCards";
 import { Topbar } from "../components/Topbar";
 import { UpcomingMeetings } from "../components/UpcomingMeetings";
 import styles from "./DashboardPage.module.css";
+import { useAuth } from "../auth/AuthContext";
 
 const referenceDate = "2026-07-20T12:00:00";
 
 export function DashboardPage() {
+  const { session } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reservations, setReservations] = useState(seedReservations);
-  const user = employeeSession.user;
+  const user = session.user;
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ")
     || `@${user.username}`;
 
@@ -51,7 +52,7 @@ export function DashboardPage() {
   );
 
   const canCreateReservation = hasPermission(
-    employeeSession.permissions,
+    session.permissions,
     permissions.RESERVATION_CREATE,
   );
 
@@ -77,7 +78,7 @@ export function DashboardPage() {
 
   return (
     <div className={styles.shell}>
-      <Sidebar session={employeeSession} />
+      <Sidebar />
 
       <div className={styles.main}>
         <Topbar user={user} />
