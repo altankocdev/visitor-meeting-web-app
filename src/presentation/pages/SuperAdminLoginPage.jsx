@@ -16,9 +16,8 @@ export function SuperAdminLoginPage() {
     setLoginError("");
     setSubmitting(true);
     try {
-      const session = await authRepository.login({
-        companySlug: data.companySlug,
-        identifier: data.username,
+      const session = await authRepository.loginSuperAdmin({
+        email: data.email.trim(),
         password: data.password,
         remember: true,
       });
@@ -37,12 +36,24 @@ export function SuperAdminLoginPage() {
         <header className={styles.header}><span className={styles.icon}><AdminPanelSettingsRounded /></span><div><small>MEETLY YÖNETİM PANELİ</small><h1>Süper admin girişi</h1><p>Platform yönetim araçlarına erişmek için yönetici bilgilerinizle oturum açın.</p></div></header>
         <div className={styles.security}><span />Bu alan yalnızca yetkili sistem yöneticileri içindir.</div>
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-          <label>Şirket kodu</label>
-          <div className={`${styles.input} ${errors.companySlug ? styles.error : ""}`}><PersonOutlineRounded /><input autoComplete="organization" placeholder="ornek-sirket" {...register("companySlug", { required: "Şirket kodu zorunludur." })} /></div>
-          {errors.companySlug && <span className={styles.errorText}>{errors.companySlug.message}</span>}
-          <label>Kullanıcı adı</label>
-          <div className={`${styles.input} ${errors.username ? styles.error : ""}`}><PersonOutlineRounded /><input autoComplete="username" placeholder="Yönetici kullanıcı adı" {...register("username", { required: "Kullanıcı adı zorunludur." })} /></div>
-          {errors.username && <span className={styles.errorText}>{errors.username.message}</span>}
+          <label htmlFor="superAdminEmail">E-posta adresi</label>
+          <div className={`${styles.input} ${errors.email ? styles.error : ""}`}>
+            <PersonOutlineRounded />
+            <input
+              id="superAdminEmail"
+              type="email"
+              autoComplete="username"
+              placeholder="admin@sirket.com"
+              {...register("email", {
+                required: "E-posta adresi zorunludur.",
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "Geçerli bir e-posta adresi girin.",
+                },
+              })}
+            />
+          </div>
+          {errors.email && <span className={styles.errorText}>{errors.email.message}</span>}
           <label>Şifre</label>
           <div className={`${styles.input} ${errors.password ? styles.error : ""}`}><LockOutlined /><input type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="Yönetici şifresi" {...register("password", { required: "Şifre zorunludur." })} /><button className={styles.toggle} type="button" onClick={() => setShowPassword((value) => !value)}>{showPassword ? <VisibilityOffOutlined /> : <VisibilityOutlined />}</button></div>
           {errors.password && <span className={styles.errorText}>{errors.password.message}</span>}

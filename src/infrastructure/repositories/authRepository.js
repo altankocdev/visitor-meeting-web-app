@@ -13,6 +13,16 @@ export const authRepository = {
     return tokens;
   },
 
+  async loginSuperAdmin({ email, password, remember = true }) {
+    const response = await apiClient.post("/platform/auth/login", {
+      email,
+      password,
+    });
+    const tokens = unwrapApiResponse(response);
+    tokenStorage.save(tokens, remember);
+    return tokens;
+  },
+
   changePassword: (currentPassword, newPassword) =>
     apiClient.post("/auth/change-password", { currentPassword, newPassword }),
 
@@ -27,4 +37,3 @@ export const authRepository = {
     }
   },
 };
-
