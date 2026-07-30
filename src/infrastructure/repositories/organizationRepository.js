@@ -17,4 +17,8 @@ export const organizationRepository = {
     const response = await apiClient.get("/job-titles", { params });
     return unwrapApiResponse(response);
   },
+  async createJobTitle(data) {
+    const response = await apiClient.post("/job-titles", data);
+    return unwrapApiResponse(response);
+  },
 };
