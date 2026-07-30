@@ -1,14 +1,13 @@
 import { BadgeOutlined, CloseRounded, EditOutlined, GroupsOutlined, SaveOutlined, ToggleOnOutlined, VerifiedUserOutlined } from "@mui/icons-material";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { roles } from "../../domain/models/roles";
 import styles from "./JobTitleDialogs.module.css";
 
 function Shell({ children, icon: Icon, onClose, subtitle, title }) {
   return <div className={styles.backdrop} role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><section className={styles.dialog} role="dialog" aria-modal="true"><header><span><Icon /></span><div><small>UNVAN YÖNETİMİ</small><h2>{title}</h2><p>{subtitle}</p></div><button type="button" onClick={onClose}><CloseRounded /></button></header>{children}</section></div>;
 }
 
-export function JobTitleFormDialog({ jobTitle, onClose, onSave, open }) {
+export function JobTitleFormDialog({ jobTitle, onClose, onSave, open, roles = [] }) {
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm();
   useEffect(() => {
     if (open) reset({ name: jobTitle?.name || "", description: jobTitle?.description || "", defaultRoleIds: jobTitle?.defaultRoleIds.map(String) || [] });
@@ -23,7 +22,7 @@ export function JobTitleStatusDialog({ jobTitle, onClose, onConfirm }) {
   return <Shell icon={ToggleOnOutlined} onClose={onClose} title={jobTitle.active ? "Unvanı pasifleştir" : "Unvanı aktifleştir"} subtitle={`${jobTitle.name} unvanının kullanım durumunu değiştirin.`}><div className={styles.confirm}><div className={jobTitle.active ? styles.warning : styles.success}><ToggleOnOutlined /><p>{jobTitle.active ? "Unvan yeni kullanıcı atamalarında seçilemez. Mevcut kullanıcıların unvan bilgisi korunur." : "Unvan yeniden kullanıcı profillerinde ve atama işlemlerinde seçilebilir."}</p></div>{jobTitle.userCount > 0 && <p className={styles.count}><GroupsOutlined /><b>{jobTitle.userCount} kullanıcı</b> halen bu unvana sahip.</p>}</div><footer className={styles.footer}><button type="button" onClick={onClose}>Vazgeç</button><button className={jobTitle.active ? styles.danger : styles.primary} type="button" onClick={onConfirm}>{jobTitle.active ? "Pasifleştir" : "Aktifleştir"}</button></footer></Shell>;
 }
 
-export function JobTitleDetailsDialog({ jobTitle, onClose, onEdit }) {
+export function JobTitleDetailsDialog({ jobTitle, onClose, onEdit, roles = [] }) {
   if (!jobTitle) return null;
   const assignedRoles = roles.filter((role) => jobTitle.defaultRoleIds.includes(role.id));
   return <Shell icon={BadgeOutlined} onClose={onClose} title={jobTitle.name} subtitle="Unvan bilgileri ve varsayılan erişim kapsamı."><div className={styles.details}><div className={styles.summary}><div><small>Durum</small><b className={jobTitle.active ? styles.active : styles.passive}>{jobTitle.active ? "Aktif" : "Pasif"}</b></div><div><small>Atanmış kullanıcı</small><strong>{jobTitle.userCount}</strong></div><div><small>Varsayılan rol</small><strong>{assignedRoles.length}</strong></div></div><section><small>AÇIKLAMA</small><p>{jobTitle.description || "Bu unvan için açıklama girilmemiş."}</p></section><section><small>VARSAYILAN ROLLER</small><div className={styles.roleList}>{assignedRoles.length ? assignedRoles.map((role) => <span key={role.id}><VerifiedUserOutlined />{role.name}<small>{role.permissionIds.length} yetki</small></span>) : <p>Varsayılan rol atanmamış.</p>}</div></section></div><footer className={styles.footer}><button type="button" onClick={onClose}>Kapat</button><button className={styles.primary} type="button" onClick={onEdit}><EditOutlined />Unvanı düzenle</button></footer></Shell>;
