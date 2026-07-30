@@ -1,20 +1,45 @@
 import { AddRounded, ApartmentRounded, CheckCircleOutlineRounded, EditOutlined, GroupsOutlined, MoreHorizRounded, SearchRounded, ToggleOffOutlined } from "@mui/icons-material";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { managementSession } from "../../domain/auth/managementSession";
+import { getApiErrorMessage } from "../../infrastructure/api/apiError";
+import { organizationRepository } from "../../infrastructure/repositories/organizationRepository";
+import { useAuth } from "../auth/AuthContext";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import { DepartmentDetailsDialog, DepartmentFormDialog, DepartmentStatusDialog } from "../components/DepartmentDialogs";
 import styles from "./DepartmentsPage.module.css";
 
-export function DepartmentsPage({ session = managementSession }) {
+export function DepartmentsPage() {
+  const { session } = useAuth();
   const navigate = useNavigate();
   const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [apiError, setApiError] = useState("");
   const [filters, setFilters] = useState({ search: "", status: "" });
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [statusTarget, setStatusTarget] = useState(null);
   const [detailsTarget, setDetailsTarget] = useState(null);
+  const companyId = session.user.companyId;
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    organizationRepository.departments(companyId, { size: 200 })
+      .then((page) => {
+        if (!mounted) return;
+        setDepartments(page.content ?? []);
+        setApiError("");
+      })
+      .catch((error) => {
+        if (mounted) setApiError(getApiErrorMessage(error, "Departmanlar yüklenemedi."));
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => { mounted = false; };
+  }, [companyId]);
 
   const filtered = useMemo(() => departments.filter((department) => {
     const search = filters.search.trim().toLocaleLowerCase("tr-TR");
@@ -22,13 +47,22 @@ export function DepartmentsPage({ session = managementSession }) {
       && (!filters.status || String(department.active) === filters.status);
   }), [departments, filters]);
 
-  const saveDepartment = (data) => {
+  const saveDepartment = async (data) => {
     if (editTarget) {
       setDepartments((current) => current.map((item) => item.id === editTarget.id ? { ...item, ...data } : item));
       setEditTarget(null);
     } else {
-      setDepartments((current) => [{ id: Date.now(), ...data, userCount: 0, active: true, manager: null }, ...current]);
-      setFormOpen(false);
+      setSaving(true);
+      try {
+        const created = await organizationRepository.createDepartment(companyId, data);
+        setDepartments((current) => [created, ...current]);
+        setFormOpen(false);
+        setApiError("");
+      } catch (error) {
+        setApiError(getApiErrorMessage(error, "Departman oluşturulamadı."));
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
@@ -43,6 +77,7 @@ export function DepartmentsPage({ session = managementSession }) {
       <div className={styles.main}>
         <AdminTopbar />
         <main className={styles.content}>
+          {apiError ? <p role="alert">{apiError}</p> : null}
           <header className={styles.pageHead}>
             <div><small>ORGANİZASYON YÖNETİMİ</small><h1>Departmanlar</h1><p>Şirket organizasyonunu oluşturun ve çalışanların bağlı olduğu birimleri yönetin.</p></div>
             <button className={styles.createButton} type="button" onClick={() => setFormOpen(true)}><AddRounded /> Yeni departman</button>
@@ -56,7 +91,7 @@ export function DepartmentsPage({ session = managementSession }) {
           </section>
 
           <section className={styles.panel}>
-            <header className={styles.panelHead}><div><h2>Departman listesi</h2><p>{filtered.length} departman gösteriliyor</p></div></header>
+            <header className={styles.panelHead}><div><h2>Departman listesi</h2><p>{loading ? "Departmanlar yükleniyor..." : `${filtered.length} departman gösteriliyor`}</p></div></header>
             <div className={styles.filters}>
               <label className={styles.search}><SearchRounded /><input value={filters.search} placeholder="Departman adı veya açıklama ara..." onChange={(event) => setFilters((value) => ({ ...value, search: event.target.value }))} /></label>
               <select value={filters.status} onChange={(event) => setFilters((value) => ({ ...value, status: event.target.value }))}><option value="">Tüm durumlar</option><option value="true">Aktif</option><option value="false">Pasif</option></select>
@@ -79,7 +114,7 @@ export function DepartmentsPage({ session = managementSession }) {
         </main>
       </div>
 
-      <DepartmentFormDialog open={formOpen || Boolean(editTarget)} department={editTarget} onClose={() => { setFormOpen(false); setEditTarget(null); }} onSave={saveDepartment} />
+      <DepartmentFormDialog open={formOpen || Boolean(editTarget)} department={editTarget} onClose={() => { if (!saving) { setFormOpen(false); setEditTarget(null); } }} onSave={saveDepartment} />
       <DepartmentStatusDialog department={statusTarget} onClose={() => setStatusTarget(null)} onConfirm={toggleStatus} />
       <DepartmentDetailsDialog
         department={detailsTarget}
