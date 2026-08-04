@@ -4,10 +4,12 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { getApiErrorMessage } from "../../infrastructure/api/apiError";
 import { authRepository } from "../../infrastructure/repositories/authRepository";
+import { useAuth } from "../auth/AuthContext";
 import styles from "./SuperAdminLoginPage.module.css";
 
 export function SuperAdminLoginPage() {
   const navigate = useNavigate();
+  const { refreshSession } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -21,6 +23,7 @@ export function SuperAdminLoginPage() {
         password: data.password,
         remember: true,
       });
+      await refreshSession();
       navigate(session.mustChangePassword ? "/change-password" : "/super-admin/dashboard");
     } catch (error) {
       setLoginError(getApiErrorMessage(error, "Yönetici girişi başarısız."));
