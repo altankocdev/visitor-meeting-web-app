@@ -14,6 +14,11 @@ export const reservationRepository = {
     return unwrapApiResponse(response);
   },
 
+  async my(params = {}) {
+    const response = await apiClient.get("/reservations/my", { params });
+    return unwrapApiResponse(response);
+  },
+
   async calendar(from, to, params = {}) {
     const response = await apiClient.get("/reservations/calendar", {
       params: { from, to, ...params },

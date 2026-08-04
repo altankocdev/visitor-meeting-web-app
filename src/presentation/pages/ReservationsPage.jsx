@@ -28,7 +28,6 @@ import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 import styles from "./ReservationsPage.module.css";
 import { getApiErrorMessage } from "../../infrastructure/api/apiError";
-import { getAccessTokenClaims } from "../../infrastructure/auth/jwtClaims";
 import { mapReservationFormToApi, mapReservationFromApi } from "../../infrastructure/mappers/reservationMapper";
 import { reservationRepository } from "../../infrastructure/repositories/reservationRepository";
 import { roomRepository } from "../../infrastructure/repositories/roomRepository";
@@ -76,16 +75,11 @@ export function ReservationsPage() {
 
   useEffect(() => {
     let active = true;
-    const claims = getAccessTokenClaims();
-    const from = dayjs().subtract(1, "year").startOf("day").format("YYYY-MM-DDTHH:mm:ss");
-    const to = dayjs().add(1, "year").endOf("day").format("YYYY-MM-DDTHH:mm:ss");
 
-    reservationRepository.calendar(from, to, { size: 200 })
+    reservationRepository.my({ size: 200 })
       .then((page) => {
         if (!active) return;
-        const items = page.content
-          .filter((item) => !claims?.sub || String(item.organizer?.id) === String(claims.sub))
-          .map(mapReservationFromApi);
+        const items = page.content.map(mapReservationFromApi);
         setReservations(items);
       })
       .catch((error) => {
