@@ -21,10 +21,7 @@ import {
 import dayjs from "dayjs";
 import "dayjs/locale/tr";
 import { useEffect, useMemo, useState } from "react";
-import {
-  reservationStatuses,
-  rooms,
-} from "../../domain/models/meeting";
+import { reservationStatuses } from "../../domain/models/meeting";
 import { BookingDialog } from "../components/BookingDialog";
 import { MeetingDetailsPanel } from "../components/MeetingDetailsPanel";
 import { Sidebar } from "../components/Sidebar";
@@ -34,6 +31,7 @@ import { getApiErrorMessage } from "../../infrastructure/api/apiError";
 import { getAccessTokenClaims } from "../../infrastructure/auth/jwtClaims";
 import { mapReservationFormToApi, mapReservationFromApi } from "../../infrastructure/mappers/reservationMapper";
 import { reservationRepository } from "../../infrastructure/repositories/reservationRepository";
+import { roomRepository } from "../../infrastructure/repositories/roomRepository";
 import { useAuth } from "../auth/AuthContext";
 
 const referenceDate = dayjs();
@@ -48,6 +46,7 @@ export function ReservationsPage() {
   const { session } = useAuth();
   const user = session.user;
   const [reservations, setReservations] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -59,6 +58,21 @@ export function ReservationsPage() {
     status: "",
     date: "",
   });
+
+  useEffect(() => {
+    if (!session?.user.companyId) return;
+    let active = true;
+    roomRepository.byActive(session.user.companyId, true, { size: 100 })
+      .then((page) => {
+        if (active) setRooms(page.content);
+      })
+      .catch(() => {
+        if (active) setRooms([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [session?.user.companyId]);
 
   useEffect(() => {
     let active = true;
