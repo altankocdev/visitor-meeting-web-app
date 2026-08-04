@@ -17,6 +17,16 @@ export const userRepository = {
     const response = await apiClient.post(usersPath(companyId), data);
     return unwrapApiResponse(response);
   },
+  async importUsers(companyId, file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await apiClient.post(`${usersPath(companyId)}/import`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return unwrapApiResponse(response);
+  },
   activate: (companyId, userId) => apiClient.patch(`${usersPath(companyId)}/${userId}/activate`),
   deactivate: (companyId, userId) => apiClient.patch(`${usersPath(companyId)}/${userId}/deactivate`),
   forcePasswordReset: (companyId, userId) =>

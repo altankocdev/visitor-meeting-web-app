@@ -9,14 +9,18 @@ import {
   WestRounded,
 } from "@mui/icons-material";
 import { Button } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { reservations as seedReservations, rooms } from "../../domain/models/meeting";
+import dayjs from "dayjs";
 import { BookingDialog } from "../components/BookingDialog";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 import styles from "./RoomsPage.module.css";
 import { useAuth } from "../auth/AuthContext";
+import { roomRepository } from "../../infrastructure/repositories/roomRepository";
+import { reservationRepository } from "../../infrastructure/repositories/reservationRepository";
+import { mapReservationFromApi, mapReservationFormToApi } from "../../infrastructure/mappers/reservationMapper";
+import { getApiErrorMessage } from "../../infrastructure/api/apiError";
 
 const roomDetails = {
   Orion: {
@@ -40,26 +44,68 @@ export function RoomsPage() {
   const { session } = useAuth();
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [, setReservations] = useState(seedReservations);
+  const [rooms, setRooms] = useState([]);
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const createReservation = (data) => {
-    const room = rooms.find((item) => item.id === Number(data.roomId));
+  useEffect(() => {
+    if (!session?.user?.companyId) return;
 
-    setReservations((current) => [
-      ...current,
-      {
-        id: Date.now(),
-        title: data.title,
-        start: `${data.date}T${data.startTime}:00`,
-        end: `${data.date}T${data.endTime}:00`,
-        roomId: room.id,
-        room: room.name,
-        participants: Number(data.participantCount),
-        participantUsernames: data.participantUsernames,
-        status: "PENDING_APPROVAL",
-        organizer: session.user.username,
-      },
-    ]);
+    let active = true;
+    const from = dayjs().startOf("day").toISOString();
+    const to = dayjs().endOf("day").toISOString();
+
+    Promise.allSettled([
+      roomRepository.byActive(session.user.companyId, true, { size: 100 }),
+      reservationRepository.calendar(from, to, { size: 500 })
+    ]).then(([roomsResult, reservationsResult]) => {
+      if (!active) return;
+
+      if (roomsResult.status === "fulfilled") {
+        setRooms(roomsResult.value.content ?? []);
+      }
+      if (reservationsResult.status === "fulfilled") {
+        setReservations((reservationsResult.value.content ?? []).map(mapReservationFromApi));
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [session?.user?.companyId]);
+
+  const processedRooms = useMemo(() => {
+    const now = dayjs();
+    return rooms.map((room) => {
+      const isBusy = reservations.some((res) => {
+        if (res.roomId !== room.id || res.status === "CANCELLED") return false;
+        const start = dayjs(res.start);
+        const end = dayjs(res.end);
+        return now.isAfter(start) && now.isBefore(end);
+      });
+
+      return {
+        ...room,
+        available: !isBusy,
+        features: (room.features ?? []).map((f) => typeof f === "string" ? f : f.name)
+      };
+    });
+  }, [rooms, reservations]);
+
+  const createReservation = async (data) => {
+    try {
+      const apiData = mapReservationFormToApi(data);
+      const created = await reservationRepository.create(apiData);
+      
+      const mapped = mapReservationFromApi(created);
+      setReservations((current) => [...current, mapped]);
+      setDialogOpen(false);
+      alert("Rezervasyon başarıyla oluşturuldu.");
+    } catch (err) {
+      console.error("Rezervasyon oluşturulamadı: ", err);
+      alert(getApiErrorMessage(err, "Rezervasyon oluşturulurken bir hata oluştu."));
+    }
   };
 
   return (
@@ -87,7 +133,7 @@ export function RoomsPage() {
           </div>
 
           <section className={styles.directory}>
-            {rooms.map((room) => {
+            {processedRooms.map((room) => {
               const detail = roomDetails[room.name] || {
                 description: "Toplantı ve çalışma ihtiyaçları için kullanılabilir oda.",
                 chairs: room.capacity,

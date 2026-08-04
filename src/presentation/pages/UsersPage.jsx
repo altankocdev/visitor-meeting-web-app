@@ -1,4 +1,4 @@
-import { AddRounded, CheckCircleOutlineRounded, EditOutlined, GroupsOutlined, MoreHorizRounded, PersonOffOutlined, SearchRounded, ShieldOutlined } from "@mui/icons-material";
+import { AddRounded, CheckCircleOutlineRounded, EditOutlined, GroupsOutlined, MoreHorizRounded, PersonOffOutlined, SearchRounded, ShieldOutlined, UploadFileOutlined } from "@mui/icons-material";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { hasPermission, permissions } from "../../domain/auth/permissions";
@@ -8,6 +8,7 @@ import { userRepository } from "../../infrastructure/repositories/userRepository
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import { UserFormDialog } from "../components/UserFormDialog";
+import { UserImportDialog } from "../components/UserImportDialog";
 import { EditUserDialog, UserDetailsDialog, UserStatusDialog } from "../components/UserManagementDialogs";
 import styles from "./UsersPage.module.css";
 import { useAuth } from "../auth/AuthContext";
@@ -32,6 +33,8 @@ export function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [editTarget, setEditTarget] = useState(null);
   const [statusTarget, setStatusTarget] = useState(null);
   const [detailsTarget, setDetailsTarget] = useState(null);
@@ -100,6 +103,20 @@ export function UsersPage() {
     }
   };
 
+  const importUsers = async (file) => {
+    try {
+      const createdUsers = await userRepository.importUsers(companyId, file);
+      const userPage = await userRepository.list(companyId, { size: 200 });
+      setUsers(userPage.content.map(mapUser));
+      setApiError("");
+      setSuccessMessage(`${createdUsers.length} kullanıcı başarıyla içe aktarıldı.`);
+      return { ok: true };
+    } catch (error) {
+      setSuccessMessage("");
+      return { ok: false, message: getApiErrorMessage(error, "Kullanıcılar Excel dosyasından aktarılamadı.") };
+    }
+  };
+
   const updateUser = (data) => {
     setUsers((current) => current.map((user) => user.id === editTarget.id
       ? { ...user, ...data, roles: Array.isArray(data.roles) ? data.roles : [data.roles] }
@@ -140,9 +157,10 @@ export function UsersPage() {
         <main className={styles.content}>
           <header className={styles.pageHead}>
             <div><small>ŞİRKET YÖNETİMİ</small><h1>Kullanıcılar</h1><p>Çalışanları görüntüleyin; departman, unvan ve rol bilgilerini yönetin.</p></div>
-            {canCreate && <button className={styles.createButton} type="button" onClick={() => setDialogOpen(true)}><AddRounded /> Yeni kullanıcı</button>}
+            {canCreate && <div className={styles.headActions}><button className={styles.importButton} type="button" onClick={() => setImportDialogOpen(true)}><UploadFileOutlined /> Excel ile aktar</button><button className={styles.createButton} type="button" onClick={() => setDialogOpen(true)}><AddRounded /> Yeni kullanıcı</button></div>}
           </header>
           {apiError && <p role="alert">{apiError}</p>}
+          {successMessage && <p className={styles.success} role="status">{successMessage}</p>}
 
           <section className={styles.stats}>
             <article><span className={styles.blue}><GroupsOutlined /></span><div><small>Toplam kullanıcı</small><strong>{users.length}</strong><p>Şirket hesabına kayıtlı</p></div></article>
@@ -178,6 +196,7 @@ export function UsersPage() {
         </main>
       </div>
       {canCreate && <UserFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onCreate={createUser} departments={departments} jobTitles={jobTitles} companyRoles={companyRoles} />}
+      {canCreate && <UserImportDialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} onImport={importUsers} />}
       <EditUserDialog user={editTarget} onClose={() => setEditTarget(null)} onSave={updateUser} departments={departments} jobTitles={jobTitles} companyRoles={companyRoles} />
       <UserStatusDialog user={statusTarget} onClose={() => setStatusTarget(null)} onConfirm={toggleUserStatus} />
       <UserDetailsDialog
