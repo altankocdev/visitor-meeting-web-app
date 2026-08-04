@@ -41,6 +41,11 @@ export function RolesPage() {
   const companyId = session.user.companyId;
 
   useEffect(() => {
+    if (!companyId) {
+      setLoading(false);
+      setApiError("Şirket kullanıcıları için şirket kapsamlı bir oturum gereklidir.");
+      return;
+    }
     let mounted = true;
     setLoading(true);
     organizationRepository.roles(companyId, { size: 200 })
@@ -60,14 +65,20 @@ export function RolesPage() {
   const filtered = useMemo(() => roles.filter((role) => `${role.name} ${role.description}`.toLocaleLowerCase("tr-TR").includes(search.toLocaleLowerCase("tr-TR"))), [roles, search]);
   const permissionCount = new Set(roles.flatMap((role) => role.permissionIds)).size;
 
-  const saveRole = (data) => {
+  const saveRole = async (data) => {
     const normalized = { ...data, permissionIds: (data.permissionIds || []).map(Number) };
     if (editTarget) {
       setRoles((current) => current.map((item) => item.id === editTarget.id ? { ...item, ...normalized } : item));
       setEditTarget(null);
     } else {
-      setRoles((current) => [{ id: Date.now(), ...normalized, userCount: 0, active: true, systemRole: false }, ...current]);
-      setFormOpen(false);
+      try {
+        const created = await organizationRepository.createRole(companyId, normalized);
+        setRoles((current) => [mapRole(created), ...current]);
+        setFormOpen(false);
+        setApiError("");
+      } catch (error) {
+        setApiError(getApiErrorMessage(error, "Rol oluşturulamadı."));
+      }
     }
   };
 

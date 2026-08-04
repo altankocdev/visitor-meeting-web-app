@@ -39,6 +39,11 @@ export function JobTitlesPage() {
   const companyId = session.user.companyId;
 
   useEffect(() => {
+    if (!companyId) {
+      setLoading(false);
+      setApiError("Şirket kullanıcıları için şirket kapsamlı bir oturum gereklidir.");
+      return;
+    }
     let mounted = true;
     setLoading(true);
     Promise.all([
