@@ -25,4 +25,14 @@ export const organizationRepository = {
     const response = await apiClient.post("/job-titles", data);
     return unwrapApiResponse(response);
   },
+  async rooms(companyId, params = {}) {
+    const response = await apiClient.get("/rooms", {
+      params: { companyId, ...params },
+    });
+    return unwrapApiResponse(response);
+  },
+  async features(companyId, params = {}) {
+    const response = await apiClient.get(`/companies/${companyId}/features`, { params });
+    return unwrapApiResponse(response);
+  },
 };
