@@ -1,12 +1,14 @@
 import { AddRounded, EditOutlined, GroupsOutlined, LocationOnOutlined, MeetingRoomOutlined, SearchRounded, SettingsSuggestOutlined, ToggleOffOutlined } from "@mui/icons-material";
-import { useMemo, useState } from "react";
-import { managementSession } from "../../domain/auth/managementSession";
+import { useEffect, useMemo, useState } from "react";
+import { organizationRepository } from "../../infrastructure/repositories/organizationRepository";
+import { useAuth } from "../auth/AuthContext";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import { FeatureFormDialog, ResourceStatusDialog, RoomFormDialog } from "../components/RoomFeatureDialogs";
 import styles from "./RoomManagementPage.module.css";
 
-export function RoomManagementPage({ session = managementSession }) {
+export function RoomManagementPage() {
+  const { session } = useAuth();
   const [tab, setTab] = useState("rooms");
   const [rooms, setRooms] = useState([]);
   const [features, setFeatures] = useState([]);
@@ -16,6 +18,26 @@ export function RoomManagementPage({ session = managementSession }) {
   const [editRoom, setEditRoom] = useState(null);
   const [editFeature, setEditFeature] = useState(null);
   const [statusTarget, setStatusTarget] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    Promise.allSettled([
+      organizationRepository.rooms(session.user.companyId, { size: 200 }),
+      organizationRepository.features(session.user.companyId, { size: 200 }),
+    ]).then(([roomResult, featureResult]) => {
+      if (!active) return;
+      if (roomResult.status === "fulfilled") {
+        setRooms((roomResult.value.content ?? []).map((room) => ({
+          ...room,
+          featureIds: (room.features ?? []).map((feature) => feature.id),
+        })));
+      }
+      if (featureResult.status === "fulfilled") {
+        setFeatures(featureResult.value.content ?? []);
+      }
+    });
+    return () => { active = false; };
+  }, [session.user.companyId]);
 
   const filteredRooms = useMemo(() => rooms.filter((room) => `${room.name} ${room.location} ${room.description}`.toLocaleLowerCase("tr-TR").includes(search.toLocaleLowerCase("tr-TR"))), [rooms, search]);
   const filteredFeatures = useMemo(() => features.filter((feature) => `${feature.name} ${feature.description}`.toLocaleLowerCase("tr-TR").includes(search.toLocaleLowerCase("tr-TR"))), [features, search]);

@@ -15,16 +15,16 @@ import { userRepository } from "../../infrastructure/repositories/userRepository
 import { useAuth } from "../auth/AuthContext";
 import styles from "./BookingDialog.module.css";
 
-const defaultValues = {
+const createDefaultValues = () => ({
   title: "",
   roomId: "",
-  date: "2026-07-21",
+  date: new Date().toLocaleDateString("en-CA"),
   startTime: "09:00",
   endTime: "10:00",
   participantCount: 1,
   participantUsernames: [],
   description: "",
-};
+});
 
 export function BookingDialog({ open, onClose, rooms, onCreate }) {
   const { session } = useAuth();
@@ -36,7 +36,7 @@ export function BookingDialog({ open, onClose, rooms, onCreate }) {
     setValue,
     watch,
     formState: { errors },
-  } = useForm({ defaultValues });
+  } = useForm({ defaultValues: createDefaultValues() });
 
   const participantCount = Number(watch("participantCount")) || 0;
   const participantUsernames = watch("participantUsernames");
@@ -60,12 +60,12 @@ export function BookingDialog({ open, onClose, rooms, onCreate }) {
       ...data,
       participantIds: data.participantUsernames.map((user) => user.id),
     });
-    reset(defaultValues);
+    reset(createDefaultValues());
     onClose();
   };
 
   const close = () => {
-    reset(defaultValues);
+    reset(createDefaultValues());
     onClose();
   };
 
