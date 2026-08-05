@@ -40,9 +40,9 @@ export const employeeNavigation = [
     permission: permissions.VISITOR_VIEW,
   },
   {
-  label: "Bildirimler",
-  path: "/notifications",
-  icon: NotificationsRounded,
-  permission: permissions.NOTIFICATION_VIEW,
-},
+    label: "Bildirimler",
+    path: "/notifications",
+    icon: NotificationsRounded,
+    permission: permissions.NOTIFICATION_VIEW,
+  },
 ];
