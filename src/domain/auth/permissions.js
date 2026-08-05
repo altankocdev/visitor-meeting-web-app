@@ -10,8 +10,10 @@ export const permissions = Object.freeze({
   USER_ACTIVATE: "USER_ACTIVATE",
   USER_ASSIGN_ROLE: "USER_ASSIGN_ROLE",
   USER_ASSIGN_JOB_TITLE: "USER_ASSIGN_JOB_TITLE",
+  ROLE_VIEW: "ROLE_VIEW",
   ROOM_VIEW: "ROOM_VIEW",
   ROOM_VIEW_AVAILABILITY: "ROOM_VIEW_AVAILABILITY",
+  ROOM_UPDATE: "ROOM_UPDATE",
   FEATURE_VIEW: "FEATURE_VIEW",
   RESERVATION_CREATE: "RESERVATION_CREATE",
   RESERVATION_VIEW_OWN: "RESERVATION_VIEW_OWN",
@@ -38,4 +40,19 @@ export const permissions = Object.freeze({
 
 export function hasPermission(userPermissions, permission) {
   return userPermissions.includes(permission);
+}
+
+const managementAccessPermissions = [
+  permissions.USER_VIEW_ALL,
+  permissions.ROLE_VIEW,
+  permissions.ROOM_UPDATE,
+  permissions.RESERVATION_VIEW_ALL,
+  permissions.COMPANY_UPDATE,
+  permissions.COMPANY_MANAGE_SETTINGS,
+  permissions.REPORT_VIEW_ROOM_USAGE,
+];
+
+export function canAccessManagement(session) {
+  return Boolean(session?.user?.owner)
+    || managementAccessPermissions.some((permission) => hasPermission(session?.permissions ?? [], permission));
 }

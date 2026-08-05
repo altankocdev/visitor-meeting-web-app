@@ -1,6 +1,6 @@
 import { AdminPanelSettingsRounded, HelpOutlineRounded, LogoutRounded } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
-import { hasPermission } from "../../domain/auth/permissions";
+import { canAccessManagement, hasPermission } from "../../domain/auth/permissions";
 import { useAuth } from "../auth/AuthContext";
 import { employeeNavigation } from "../config/employeeNavigation";
 import { Brand } from "./Brand";
@@ -43,7 +43,7 @@ export function Sidebar({ session: providedSession }) {
       </nav>
 
       <div className={styles.bottom}>
-        {session.user.owner ? (
+        {canAccessManagement(session) ? (
           <button className={styles.button} type="button" onClick={() => navigate("/management/dashboard")}>
             <AdminPanelSettingsRounded />
             Şirket yönetimi
