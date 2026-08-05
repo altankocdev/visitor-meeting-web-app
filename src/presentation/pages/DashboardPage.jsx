@@ -2,6 +2,7 @@ import { AddRounded, CalendarMonthOutlined } from "@mui/icons-material";
 import { Button, Alert, Snackbar } from "@mui/material";
 import dayjs from "dayjs";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { hasPermission, permissions } from "../../domain/auth/permissions";
 import { BookingCalendar } from "../components/BookingCalendar";
 import { BookingDialog } from "../components/BookingDialog";
@@ -9,6 +10,7 @@ import { Sidebar } from "../components/Sidebar";
 import { StatCards } from "../components/StatCards";
 import { Topbar } from "../components/Topbar";
 import { UpcomingMeetings } from "../components/UpcomingMeetings";
+import { MeetingDetailsPanel } from "../components/MeetingDetailsPanel";
 import styles from "./DashboardPage.module.css";
 import { useAuth } from "../auth/AuthContext";
 import { roomRepository } from "../../infrastructure/repositories/roomRepository";
@@ -18,11 +20,13 @@ import { getApiErrorMessage } from "../../infrastructure/api/apiError";
 
 export function DashboardPage() {
   const { session } = useAuth();
+  const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [rooms, setRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState(null);
+  const [selectedMeeting, setSelectedMeeting] = useState(null);
   const user = session.user;
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ")
     || `@${user.username}`;
@@ -170,7 +174,7 @@ export function DashboardPage() {
 
           <div className={styles.grid}>
             <BookingCalendar reservations={calendarReservations} />
-            <UpcomingMeetings items={upcomingReservations} />
+            <UpcomingMeetings items={upcomingReservations} onSelect={setSelectedMeeting} onViewAll={() => navigate("/reservations")} />
           </div>
         </main>
       </div>
@@ -183,6 +187,7 @@ export function DashboardPage() {
           onCreate={createReservation}
         />
       )}
+      <MeetingDetailsPanel open={Boolean(selectedMeeting)} meetings={selectedMeeting ? [selectedMeeting] : []} onClose={() => setSelectedMeeting(null)} />
       <Snackbar open={Boolean(notice)} autoHideDuration={5000} onClose={() => setNotice(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
         <Alert severity={notice?.severity ?? "info"} variant="filled" onClose={() => setNotice(null)}>
           {notice?.text}
