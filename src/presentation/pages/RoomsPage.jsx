@@ -8,7 +8,7 @@ import {
   VideocamOutlined,
   WestRounded,
 } from "@mui/icons-material";
-import { Button } from "@mui/material";
+import { Button, Alert, Snackbar } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
@@ -47,6 +47,7 @@ export function RoomsPage() {
   const [rooms, setRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState(null);
 
   useEffect(() => {
     if (!session?.user?.companyId) return;
@@ -101,10 +102,10 @@ export function RoomsPage() {
       const mapped = mapReservationFromApi(created);
       setReservations((current) => [...current, mapped]);
       setDialogOpen(false);
-      alert("Rezervasyon başarıyla oluşturuldu.");
+      setNotice({ severity: "success", text: "Rezervasyon başarıyla oluşturuldu." });
     } catch (err) {
       console.error("Rezervasyon oluşturulamadı: ", err);
-      alert(getApiErrorMessage(err, "Rezervasyon oluşturulurken bir hata oluştu."));
+      setNotice({ severity: "error", text: getApiErrorMessage(err, "Rezervasyon oluşturulurken bir hata oluştu.") });
     }
   };
 
@@ -203,6 +204,11 @@ export function RoomsPage() {
         rooms={rooms}
         onCreate={createReservation}
       />
+      <Snackbar open={Boolean(notice)} autoHideDuration={5000} onClose={() => setNotice(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+        <Alert severity={notice?.severity ?? "info"} variant="filled" onClose={() => setNotice(null)}>
+          {notice?.text}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
