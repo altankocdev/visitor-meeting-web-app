@@ -1,4 +1,4 @@
-import { AddRounded, CheckCircleOutlineRounded, EditOutlined, GroupsOutlined, MoreHorizRounded, PersonOffOutlined, SearchRounded, ShieldOutlined, UploadFileOutlined } from "@mui/icons-material";
+import { AddRounded, CheckCircleOutlineRounded, DeleteOutlineRounded, EditOutlined, GroupsOutlined, MoreHorizRounded, PersonOffOutlined, SearchRounded, ShieldOutlined, UploadFileOutlined } from "@mui/icons-material";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { hasPermission, permissions } from "../../domain/auth/permissions";
@@ -9,7 +9,7 @@ import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import { UserFormDialog } from "../components/UserFormDialog";
 import { UserImportDialog } from "../components/UserImportDialog";
-import { EditUserDialog, UserDetailsDialog, UserStatusDialog } from "../components/UserManagementDialogs";
+import { EditUserDialog, UserDeleteDialog, UserDetailsDialog, UserStatusDialog } from "../components/UserManagementDialogs";
 import styles from "./UsersPage.module.css";
 import { useAuth } from "../auth/AuthContext";
 
@@ -38,6 +38,8 @@ export function UsersPage() {
   const [editTarget, setEditTarget] = useState(null);
   const [statusTarget, setStatusTarget] = useState(null);
   const [detailsTarget, setDetailsTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [filters, setFilters] = useState({ search: "", department: departmentFromUrl, role: "", status: "" });
   const canCreate = session.isPlatformAdmin
     || hasPermission(session.permissions, permissions.USER_CREATE);
@@ -45,6 +47,7 @@ export function UsersPage() {
   const canDeactivate = hasPermission(session.permissions, permissions.USER_DEACTIVATE);
   const canActivate = hasPermission(session.permissions, permissions.USER_ACTIVATE);
   const canAssignRole = hasPermission(session.permissions, permissions.USER_ASSIGN_ROLE);
+  const canDelete = hasPermission(session.permissions, permissions.USER_DELETE);
   const companyId = session.user.companyId;
 
   useEffect(() => {
@@ -149,6 +152,24 @@ export function UsersPage() {
     }
   };
 
+  const deleteUser = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await userRepository.deleteUser(companyId, deleteTarget.id);
+      setUsers((current) => current.filter((user) => user.id !== deleteTarget.id));
+      setDetailsTarget(null);
+      setDeleteTarget(null);
+      setApiError("");
+      setSuccessMessage("Kullanıcı kalıcı olarak silindi.");
+    } catch (error) {
+      setApiError(getApiErrorMessage(error, "Kullanıcı silinemedi. Geçmiş kaydı varsa pasifleştirmeyi deneyin."));
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className={styles.shell}>
       <AdminSidebar session={session} />
@@ -187,7 +208,7 @@ export function UsersPage() {
                     <td><b>{user.department}</b><small>{user.jobTitle}</small></td>
                     <td><div className={styles.roles}>{user.roles.map((role) => <span key={role}>{role}</span>)}</div></td>
                     <td><span className={`${styles.status} ${user.active ? styles.active : styles.passive}`}><i />{user.active ? (user.mustChangePassword ? "İlk giriş bekleniyor" : "Aktif") : "Pasif"}</span></td>
-                    <td><div className={styles.actions}>{canUpdate && <button type="button" title="Kullanıcıyı düzenle" onClick={() => setEditTarget(user)}><EditOutlined /></button>}{((user.active && canDeactivate) || (!user.active && canActivate)) && <button type="button" title={user.active ? "Kullanıcıyı pasifleştir" : "Kullanıcıyı aktifleştir"} onClick={() => setStatusTarget(user)}><PersonOffOutlined /></button>}<button type="button" title="Kullanıcı detayları" onClick={() => setDetailsTarget(user)}><MoreHorizRounded /></button></div></td>
+                    <td><div className={styles.actions}>{canUpdate && <button type="button" title="Kullanıcıyı düzenle" onClick={() => setEditTarget(user)}><EditOutlined /></button>}{((user.active && canDeactivate) || (!user.active && canActivate)) && <button type="button" title={user.active ? "Kullanıcıyı pasifleştir" : "Kullanıcıyı aktifleştir"} onClick={() => setStatusTarget(user)}><PersonOffOutlined /></button>}{canDelete && !user.owner && user.id !== session.user.id && <button type="button" title="Kullanıcıyı kalıcı olarak sil" onClick={() => setDeleteTarget(user)}><DeleteOutlineRounded /></button>}<button type="button" title="Kullanıcı detayları" onClick={() => setDetailsTarget(user)}><MoreHorizRounded /></button></div></td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -199,16 +220,22 @@ export function UsersPage() {
       {canCreate && <UserImportDialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} onImport={importUsers} />}
       <EditUserDialog user={editTarget} onClose={() => setEditTarget(null)} onSave={updateUser} departments={departments} jobTitles={jobTitles} companyRoles={companyRoles} />
       <UserStatusDialog user={statusTarget} onClose={() => setStatusTarget(null)} onConfirm={toggleUserStatus} />
+      <UserDeleteDialog user={deleteTarget} deleting={deleting} onClose={() => setDeleteTarget(null)} onConfirm={deleteUser} />
       <UserDetailsDialog
         user={detailsTarget}
         canUpdate={canUpdate}
         canAssignRole={canAssignRole}
+        canDelete={canDelete && !detailsTarget?.owner && detailsTarget?.id !== session.user.id}
         onClose={() => setDetailsTarget(null)}
         onEdit={() => {
           setEditTarget(detailsTarget);
           setDetailsTarget(null);
         }}
         onResetPassword={resetTemporaryPassword}
+        onDelete={() => {
+          setDeleteTarget(detailsTarget);
+          setDetailsTarget(null);
+        }}
       />
     </div>
   );

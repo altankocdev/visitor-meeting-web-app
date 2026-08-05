@@ -1,4 +1,4 @@
-import { BadgeOutlined, CloseRounded, EditOutlined, EmailOutlined, LockResetOutlined, PersonOffOutlined, PersonOutlineRounded, SaveOutlined, ToggleOnOutlined, VerifiedUserOutlined } from "@mui/icons-material";
+import { BadgeOutlined, CloseRounded, DeleteForeverOutlined, EditOutlined, EmailOutlined, LockResetOutlined, PersonOffOutlined, PersonOutlineRounded, SaveOutlined, ToggleOnOutlined, VerifiedUserOutlined } from "@mui/icons-material";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import styles from "./UserManagementDialogs.module.css";
@@ -59,7 +59,20 @@ export function UserStatusDialog({ onClose, onConfirm, user }) {
   );
 }
 
-export function UserDetailsDialog({ canAssignRole, canUpdate, onClose, onEdit, onResetPassword, user }) {
+export function UserDeleteDialog({ deleting, onClose, onConfirm, user }) {
+  if (!user) return null;
+  return (
+    <DialogShell eyebrow="KALICI SİLME" icon={DeleteForeverOutlined} onClose={onClose} title="Kullanıcıyı kalıcı olarak sil" subtitle={`${user.firstName} ${user.lastName} hesabını şirketten kaldırın.`}>
+      <div className={styles.confirmBody}>
+        <div className={styles.warning}><DeleteForeverOutlined /><p>Bu işlem geri alınamaz. Rezervasyon, katılımcı veya bildirim geçmişi bulunan kullanıcılar silinemez; bu kullanıcıları pasifleştirmelisiniz.</p></div>
+        <dl><div><dt>Kullanıcı</dt><dd>@{user.username}</dd></div><div><dt>E-posta</dt><dd>{user.email}</dd></div></dl>
+      </div>
+      <footer className={styles.footer}><button type="button" disabled={deleting} onClick={onClose}>Vazgeç</button><button className={styles.danger} type="button" disabled={deleting} onClick={onConfirm}>{deleting ? "Siliniyor..." : "Kalıcı olarak sil"}</button></footer>
+    </DialogShell>
+  );
+}
+
+export function UserDetailsDialog({ canAssignRole, canDelete, canUpdate, onClose, onDelete, onEdit, onResetPassword, user }) {
   if (!user) return null;
   return (
     <DialogShell eyebrow="KULLANICI DETAYI" icon={PersonOutlineRounded} onClose={onClose} title={`${user.firstName} ${user.lastName}`} subtitle={`@${user.username} hesabının ayrıntıları ve yönetim işlemleri.`}>
@@ -77,6 +90,7 @@ export function UserDetailsDialog({ canAssignRole, canUpdate, onClose, onEdit, o
           <button type="button" onClick={onResetPassword}><LockResetOutlined /><span><b>Geçici şifre oluştur</b><small>İlk giriş şifre değişimini yeniden etkinleştir</small></span></button>
         </div>
       </div>
+          {canDelete && <button className={styles.deleteAction} type="button" onClick={onDelete}><DeleteForeverOutlined /><span><b>Kullanıcıyı sil</b><small>Hesabı şirketten kalıcı olarak kaldır</small></span></button>}
       <footer className={styles.footer}><button type="button" onClick={onClose}>Kapat</button></footer>
     </DialogShell>
   );
