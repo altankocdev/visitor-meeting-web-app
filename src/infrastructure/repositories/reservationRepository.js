@@ -43,9 +43,28 @@ export const reservationRepository = {
     return unwrapApiResponse(response);
   },
 
-  approve: (id) => apiClient.patch(`/reservations/${id}/approve`),
-  reject: (id, reason) => apiClient.patch(`/reservations/${id}/reject`, null, { params: { reason } }),
-  cancel: (id, reason) => apiClient.patch(`/reservations/${id}/cancel`, null, { params: { reason } }),
-  addParticipant: (id, userId) => apiClient.patch(`/reservations/${id}/participants/${userId}`),
-  removeParticipant: (id, userId) => apiClient.delete(`/reservations/${id}/participants/${userId}`),
+  async approve(id) {
+    const response = await apiClient.patch(`/reservations/${id}/approve`);
+    return unwrapApiResponse(response);
+  },
+
+  async reject(id, reason) {
+    const response = await apiClient.patch(`/reservations/${id}/reject`, null, { params: { reason } });
+    return unwrapApiResponse(response);
+  },
+
+  async cancel(id, reason) {
+    const response = await apiClient.patch(`/reservations/${id}/cancel`, null, { params: { reason } });
+    return unwrapApiResponse(response);
+  },
+
+  async addParticipant(id, userId) {
+    const response = await apiClient.patch(`/reservations/${id}/participants/${userId}`);
+    return unwrapApiResponse(response);
+  },
+
+  async removeParticipant(id, userId) {
+    const response = await apiClient.delete(`/reservations/${id}/participants/${userId}`);
+    return unwrapApiResponse(response);
+  },
 };

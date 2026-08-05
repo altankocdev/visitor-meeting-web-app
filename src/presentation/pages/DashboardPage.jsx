@@ -1,5 +1,5 @@
 import { AddRounded, CalendarMonthOutlined } from "@mui/icons-material";
-import { Button } from "@mui/material";
+import { Button, Alert, Snackbar } from "@mui/material";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import { hasPermission, permissions } from "../../domain/auth/permissions";
@@ -22,6 +22,7 @@ export function DashboardPage() {
   const [rooms, setRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState(null);
   const user = session.user;
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ")
     || `@${user.username}`;
@@ -106,9 +107,10 @@ export function DashboardPage() {
       const mapped = mapReservationFromApi(created);
       setReservations((current) => [...current, mapped]);
       setDialogOpen(false);
+      setNotice({ severity: "success", text: "Rezervasyon başarıyla oluşturuldu." });
     } catch (err) {
       console.error("Rezervasyon oluşturulamadı: ", err);
-      alert(getApiErrorMessage(err, "Rezervasyon oluşturulurken bir hata oluştu."));
+      setNotice({ severity: "error", text: getApiErrorMessage(err, "Rezervasyon oluşturulurken bir hata oluştu.") });
     }
   };
 
@@ -162,6 +164,11 @@ export function DashboardPage() {
           onCreate={createReservation}
         />
       )}
+      <Snackbar open={Boolean(notice)} autoHideDuration={5000} onClose={() => setNotice(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+        <Alert severity={notice?.severity ?? "info"} variant="filled" onClose={() => setNotice(null)}>
+          {notice?.text}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

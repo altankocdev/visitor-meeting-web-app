@@ -71,10 +71,32 @@ export function AdminReservationsPage() {
     }
   };
 
-  const confirmDecision = (reason) => {
-    const nextStatus = decision.action === "approve" ? "ACTIVE" : decision.action === "reject" ? "REJECTED" : "CANCELLED";
-    setReservations((current) => current.map((item) => item.id === decision.reservation.id ? { ...item, status: nextStatus, rejectionReason: decision.action === "reject" ? reason : item.rejectionReason, cancelReason: decision.action === "cancel" ? reason : item.cancelReason } : item));
-    setDecision(null); setDetailsTarget(null);
+  const confirmDecision = async (reason) => {
+    const id = decision.reservation.id;
+    try {
+      if (decision.action === "approve") {
+        await reservationRepository.approve(id);
+      } else if (decision.action === "reject") {
+        await reservationRepository.reject(id, reason);
+      } else if (decision.action === "cancel") {
+        await reservationRepository.cancel(id, reason);
+      }
+
+      const nextStatus = decision.action === "approve" ? "ACTIVE" : decision.action === "reject" ? "REJECTED" : "CANCELLED";
+      setReservations((current) => current.map((item) => item.id === id ? { ...item, status: nextStatus, rejectionReason: decision.action === "reject" ? reason : item.rejectionReason, cancelReason: decision.action === "cancel" ? reason : item.cancelReason } : item));
+      setNotice({
+        severity: "success",
+        text: `Rezervasyon başarıyla ${decision.action === "approve" ? "onaylandı" : decision.action === "reject" ? "reddedildi" : "iptal edildi"}.`
+      });
+    } catch (error) {
+      setNotice({
+        severity: "error",
+        text: getApiErrorMessage(error, `Rezervasyon ${decision.action === "approve" ? "onaylanamadı" : decision.action === "reject" ? "reddedilemedi" : "iptal edilemedi"}.`)
+      });
+    } finally {
+      setDecision(null);
+      setDetailsTarget(null);
+    }
   };
   const openDecision = (action, reservation = detailsTarget) => { setDetailsTarget(null); setDecision({ action, reservation }); };
 
