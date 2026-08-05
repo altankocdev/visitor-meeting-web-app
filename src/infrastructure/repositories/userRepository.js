@@ -29,6 +29,7 @@ export const userRepository = {
   },
   activate: (companyId, userId) => apiClient.patch(`${usersPath(companyId)}/${userId}/activate`),
   deactivate: (companyId, userId) => apiClient.patch(`${usersPath(companyId)}/${userId}/deactivate`),
+  deleteUser: (companyId, userId) => apiClient.delete(`${usersPath(companyId)}/${userId}`),
   forcePasswordReset: (companyId, userId) =>
     apiClient.patch(`${usersPath(companyId)}/${userId}/force-password-reset`),
 };
