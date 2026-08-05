@@ -1,7 +1,7 @@
 import { AddRounded, CalendarMonthOutlined } from "@mui/icons-material";
 import { Button, Alert, Snackbar } from "@mui/material";
 import dayjs from "dayjs";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { hasPermission, permissions } from "../../domain/auth/permissions";
 import { BookingCalendar } from "../components/BookingCalendar";
 import { BookingDialog } from "../components/BookingDialog";
@@ -29,6 +29,20 @@ export function DashboardPage() {
 
   const referenceDate = useMemo(() => dayjs().toISOString(), []);
 
+  const fetchCalendarReservations = useCallback(() => {
+    const from = dayjs().subtract(1, "month").startOf("month").toISOString();
+    const to = dayjs().add(2, "month").endOf("month").toISOString();
+
+    return reservationRepository.calendar(from, to, { size: 500 })
+      .then((page) => {
+        const mapped = (page.content ?? []).map(mapReservationFromApi);
+        setReservations(mapped);
+      })
+      .catch((err) => {
+        console.error("Rezervasyonlar yüklenirken hata oluştu: ", err);
+      });
+  }, []);
+
   useEffect(() => {
     if (!session?.user?.companyId) return;
 
@@ -44,31 +58,30 @@ export function DashboardPage() {
       });
 
     // Rezervasyonları getir
-    const from = dayjs().subtract(1, "month").startOf("month").toISOString();
-    const to = dayjs().add(2, "month").endOf("month").toISOString();
-
-    reservationRepository.calendar(from, to, { size: 500 })
-      .then((page) => {
-        if (active) {
-          const mapped = (page.content ?? []).map(mapReservationFromApi);
-          setReservations(mapped);
-        }
-      })
-      .catch((err) => {
-        console.error("Rezervasyonlar yüklenirken hata oluştu: ", err);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+    fetchCalendarReservations().finally(() => {
+      if (active) setLoading(false);
+    });
 
     return () => {
       active = false;
     };
-  }, [session?.user?.companyId]);
+  }, [session?.user?.companyId, fetchCalendarReservations]);
+
+  const checkIsOwn = useCallback((item) => {
+    if (!user) return false;
+    if (item.isOwn) return true;
+    if (item.organizer === "Siz") return true;
+    if (item.organizerId != null && user.id != null && String(item.organizerId) === String(user.id)) return true;
+    if (user.username && item.organizer === user.username) return true;
+    if (user.email && item.organizer === user.email) return true;
+    const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
+    if (fullName && item.organizer === fullName) return true;
+    return false;
+  }, [user]);
 
   const ownReservations = useMemo(
-    () => reservations.filter((item) => item.organizer === "Siz" || item.organizer === user.username || item.organizerId === user.id),
-    [reservations, user.username, user.id],
+    () => reservations.filter((item) => checkIsOwn(item)),
+    [reservations, checkIsOwn],
   );
 
   const upcomingReservations = useMemo(
@@ -78,7 +91,7 @@ export function DashboardPage() {
 
   const calendarReservations = useMemo(
     () => reservations.map((item) => {
-      const isOwn = item.organizer === "Siz" || item.organizer === user.username || item.organizerId === user.id;
+      const isOwn = checkIsOwn(item);
 
       return isOwn
         ? { ...item, isOwn: true }
@@ -91,7 +104,7 @@ export function DashboardPage() {
             isOwn: false,
           };
     }),
-    [reservations, user.username, user.id],
+    [reservations, checkIsOwn],
   );
 
   const canCreateReservation = hasPermission(
@@ -105,9 +118,20 @@ export function DashboardPage() {
       const created = await reservationRepository.create(apiData);
       
       const mapped = mapReservationFromApi(created);
-      setReservations((current) => [...current, mapped]);
+      const matchedRoom = rooms.find((r) => String(r.id) === String(data.roomId));
+      const enriched = {
+        ...mapped,
+        room: mapped.room || matchedRoom?.name || "",
+        isOwn: true,
+        organizer: mapped.organizer || [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username,
+        organizerId: mapped.organizerId || user.id,
+      };
+
+      setReservations((current) => [...current, enriched]);
       setDialogOpen(false);
       setNotice({ severity: "success", text: "Rezervasyon başarıyla oluşturuldu." });
+
+      fetchCalendarReservations();
     } catch (err) {
       console.error("Rezervasyon oluşturulamadı: ", err);
       setNotice({ severity: "error", text: getApiErrorMessage(err, "Rezervasyon oluşturulurken bir hata oluştu.") });
