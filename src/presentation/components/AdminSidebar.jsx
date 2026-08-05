@@ -15,7 +15,7 @@ export function AdminSidebar() {
     <aside className={styles.sidebar}>
       <Brand />
       <div className={styles.platform}><span>{session?.user.roleLabel?.toLocaleUpperCase("tr-TR") || "SÜPER ADMIN"}</span><small>{session?.user.companyName || "Yaşar Bilgi"} yönetimi</small></div>
-      {!session.isPlatformAdmin && session.user.owner ? (
+      {!session.isPlatformAdmin ? (
         <button
           className={styles.workspaceButton}
           type="button"
