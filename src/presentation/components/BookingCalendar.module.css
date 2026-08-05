@@ -1,4 +1,4 @@
-﻿.panel { min-width: 0; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: white; box-shadow: var(--shadow-panel); }
+.panel { min-width: 0; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: white; box-shadow: var(--shadow-panel); }
 .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 20px 22px 12px; }
 .head h3 { margin: 0 0 4px; font: 700 17px "Manrope", sans-serif; }
 .head p { max-width: 520px; margin: 0; color: #84949d; font-size: var(--font-md); line-height: 1.5; }
@@ -16,28 +16,31 @@
 .activeDot { background: #3282b8; }
 .pendingDot { background: #e3933b; }
 .busyDot { background: #91a3ad; }
-.eventCard { min-width: 0; display: flex; flex-direction: column; gap: 3px; padding: 3px 4px; line-height: 1.2; }
-.eventTopline { display: flex; align-items: center; justify-content: space-between; gap: 5px; color: inherit; font-size: var(--font-xs); font-weight: 800; }
-.eventStatus { overflow: hidden; opacity: .72; text-overflow: ellipsis; white-space: nowrap; }
-.eventCard strong { overflow: hidden; color: inherit; font-size: var(--font-md); font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
-.eventMeta { overflow: hidden; color: inherit; opacity: .82; font-size: var(--font-xs); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.eventCard { min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 2px 4px; line-height: 1.25; overflow: hidden; box-sizing: border-box; }
+.eventTopline { display: flex; align-items: center; justify-content: space-between; gap: 4px; color: inherit; font-size: 10px; font-weight: 800; }
+.eventStatus { overflow: hidden; opacity: 0.85; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; font-weight: 700; }
+.eventTitle { overflow: hidden; color: inherit; font-size: 11px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.eventMeta { overflow: hidden; color: inherit; opacity: 0.85; font-size: 10px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.dayHeaderCell { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 2px; line-height: 1.25; text-align: center; max-width: 100%; overflow: hidden; }
+.dayHeaderNum { font-size: 13px; font-weight: 800; color: #1b262c; white-space: nowrap; }
+.dayHeaderName { font-size: 11px; font-weight: 600; color: #71838d; text-transform: capitalize; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .panel :global(.fc) { padding: 0 18px 18px; font-size: var(--font-md); }
 .panel :global(.fc-theme-standard td), .panel :global(.fc-theme-standard th) { border-color: #e9eff2 !important; }
 .panel :global(.fc .fc-scrollgrid) { border: 0 !important; }
-.panel :global(.fc .fc-col-header-cell-cushion) { padding: 11px 8px; color: #566d78; font-size: var(--font-md); font-weight: 700; text-decoration: none; text-transform: capitalize; }
+.panel :global(.fc .fc-col-header-cell-cushion) { padding: 6px 2px; color: #566d78; font-size: var(--font-md); font-weight: 700; text-decoration: none; display: block; max-width: 100%; overflow: hidden; }
 .panel :global(.fc .fc-timegrid-slot) { height: 34px; }
 .panel :global(.fc .fc-timegrid-slot-label-cushion) { padding-right: 10px; color: #7f9099; font-size: var(--font-sm); }
-.panel :global(.fc-event) { overflow: hidden; padding: 2px 3px; border: 0 !important; border-radius: 8px !important; box-shadow: 0 3px 8px rgba(39,65,78,.08); cursor: pointer; transition: transform .16s ease, box-shadow .16s ease; }
+.panel :global(.fc-event) { overflow: hidden; padding: 2px 4px !important; border: 0 !important; border-radius: 8px !important; box-shadow: 0 3px 8px rgba(39,65,78,.08); cursor: pointer; transition: transform .16s ease, box-shadow .16s ease; min-height: 44px !important; }
+.panel :global(.fc-timegrid-event-harness) { min-height: 44px !important; }
 .panel :global(.fc-event:hover) { z-index: 5 !important; transform: translateY(-1px); box-shadow: 0 7px 16px rgba(15,76,117,.18); }
 .panel :global(.fc-event:focus) { outline: 2px solid var(--color-blue); outline-offset: 2px; }
-.panel :global(.fc-event-main) { color: inherit !important; }
+.panel :global(.fc-event-main) { color: inherit !important; height: 100%; }
 .panel :global(.event-active) { color: #0f4c75 !important; background: #bbe1fa !important; border-left: 4px solid #3282b8 !important; }
 .panel :global(.event-pending) { color: #704510 !important; background: #fff0db !important; border-left: 4px solid #e3933b !important; }
 .panel :global(.event-busy) { color: #1b262c !important; background: #dce8ef !important; border-left: 4px solid #607d8b !important; }
 .panel :global(.event-group) { color: #1b262c !important; background: linear-gradient(135deg, #bbe1fa 0%, #dceefa 100%) !important; border-left: 4px solid #0f4c75 !important; }
 .panel :global(.fc-day-today) { background: #f7fbfd !important; }
 .panel :global(.fc-timeGridDay-view .fc-timegrid-event-harness) { margin-right: 5px; }
-.panel :global(.fc-timeGridWeek-view .eventStatus), .panel :global(.fc-timeGridWeek-view .eventMeta) { display: none; }
 
 @media (max-width: 850px) {
   .head { flex-direction: column; }
