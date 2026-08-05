@@ -123,15 +123,22 @@ export function ReservationsPage() {
     completed: ownReservations.filter((item) => item.status === "COMPLETED").length,
   };
 
-  const createReservation = async (data) => {
-    try {
-      const created = await reservationRepository.create(mapReservationFormToApi(data));
-      setReservations((current) => [...current, mapReservationFromApi(created)]);
-      setNotice({ severity: "success", text: "Rezervasyon oluşturuldu." });
-    } catch (error) {
-      setNotice({ severity: "error", text: getApiErrorMessage(error, "Rezervasyon oluşturulamadı.") });
-    }
-  };
+ const createReservation = async (data) => {
+  try {
+    const created = await reservationRepository.create(mapReservationFormToApi(data));
+    setReservations((current) => [...current, mapReservationFromApi(created)]);
+    setDialogOpen(false);
+    setNotice({
+      severity: "success",
+      text: "Rezervasyon talebiniz oluşturuldu ve onay bekliyor.",
+    });
+  } catch (error) {
+    setNotice({
+      severity: "error",
+      text: getApiErrorMessage(error, "Rezervasyon oluşturulamadı."),
+    });
+  }
+};
 
   const cancelReservation = async () => {
     try {
@@ -300,9 +307,21 @@ export function ReservationsPage() {
           <Button color="error" variant="contained" onClick={cancelReservation}>Rezervasyonu iptal et</Button>
         </DialogActions>
       </Dialog>
-      <Snackbar open={Boolean(notice)} autoHideDuration={5000} onClose={() => setNotice(null)}>
-        <Alert severity={notice?.severity ?? "info"} onClose={() => setNotice(null)}>{notice?.text}</Alert>
-      </Snackbar>
+      <Snackbar
+  open={Boolean(notice)}
+  autoHideDuration={6000}
+  onClose={() => setNotice(null)}
+  anchorOrigin={{ vertical: "top", horizontal: "right" }}
+>
+  <Alert
+    variant="filled"
+    severity={notice?.severity ?? "info"}
+    onClose={() => setNotice(null)}
+    sx={{ width: "100%", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.18)" }}
+  >
+    {notice?.text}
+  </Alert>
+</Snackbar>
     </div>
   );
 }

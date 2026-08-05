@@ -20,9 +20,9 @@ export function Topbar({ user: providedUser }) {
       </label>
 
       <div className={styles.actions}>
-        <IconButton aria-label="Bildirimleri aç">
-          <NotificationsNoneRounded />
-        </IconButton>
+       <IconButton aria-label="Bildirimleri aç" onClick={() => navigate("/notifications")}>
+  <NotificationsNoneRounded />
+</IconButton>
         <span className={styles.divider} />
         <button
           className={styles.profile}
