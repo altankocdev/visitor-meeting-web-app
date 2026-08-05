@@ -85,12 +85,20 @@ export function DashboardPage() {
   );
 
   const upcomingReservations = useMemo(
-    () => ownReservations.filter((item) => dayjs(item.end).isAfter(dayjs())),
+    () => ownReservations.filter(
+      (item) => ["ACTIVE", "PENDING_APPROVAL"].includes(item.status)
+        && dayjs(item.end).isAfter(dayjs()),
+    ),
     [ownReservations],
   );
 
+  const canViewReservationDetails = user.owner || hasPermission(
+    session.permissions,
+    permissions.RESERVATION_VIEW_DETAILS,
+  );
+
   const calendarReservations = useMemo(
-    () => ownReservations.map((item) => ({ ...item, isOwn: true })),
+    () => ownReservations.map((item) => ({ ...item, isOwn: true, canViewDetails: true })),
     [ownReservations],
   );
 

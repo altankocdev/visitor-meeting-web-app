@@ -1,4 +1,4 @@
-import { HelpOutlineRounded, LogoutRounded } from "@mui/icons-material";
+import { AdminPanelSettingsRounded, HelpOutlineRounded, LogoutRounded } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { hasPermission } from "../../domain/auth/permissions";
 import { useAuth } from "../auth/AuthContext";
@@ -43,6 +43,12 @@ export function Sidebar({ session: providedSession }) {
       </nav>
 
       <div className={styles.bottom}>
+        {session.user.owner ? (
+          <button className={styles.button} type="button" onClick={() => navigate("/management/dashboard")}>
+            <AdminPanelSettingsRounded />
+            Şirket yönetimi
+          </button>
+        ) : null}
         <button className={styles.button} type="button">
           <HelpOutlineRounded />
           Yardım merkezi

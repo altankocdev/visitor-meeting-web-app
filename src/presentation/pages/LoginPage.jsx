@@ -43,10 +43,10 @@ export function LoginPage() {
         password: values.password,
         remember: values.remember,
       });
-      const activeSession = await refreshSession();
+      await refreshSession();
       navigate(session.mustChangePassword
         ? "/change-password"
-        : activeSession?.user?.owner ? "/management/dashboard" : "/dashboard");
+        : "/dashboard");
     } catch (error) {
       setSubmitError(getApiErrorMessage(error, "Oturum açılamadı. Bilgilerinizi kontrol edin."));
     } finally {

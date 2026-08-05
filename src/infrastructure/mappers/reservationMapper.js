@@ -10,6 +10,7 @@ export function mapReservationFromApi(reservation) {
     participantUsers: reservation.participants ?? [],
     organizer: reservation.organizer?.fullName || reservation.organizer?.email || "",
     organizerId: reservation.organizer?.id,
+    organizerDetails: reservation.organizer ?? null,
   };
 }
 

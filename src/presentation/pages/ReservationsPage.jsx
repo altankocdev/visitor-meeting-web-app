@@ -239,7 +239,7 @@ export function ReservationsPage() {
                   </thead>
                   <tbody>
                     {filteredReservations.map((reservation) => {
-                      const status = reservationStatuses[reservation.status];
+                      const status = reservationStatuses[reservation.status] ?? { label: reservation.status || "Bilinmiyor", color: "#70818B" };
                       const canCancel = ["ACTIVE", "PENDING_APPROVAL"].includes(reservation.status)
                         && dayjs(reservation.start).isAfter(referenceDate);
 
