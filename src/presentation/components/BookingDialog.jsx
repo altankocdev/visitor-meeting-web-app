@@ -45,7 +45,15 @@ export function BookingDialog({ open, onClose, rooms, onCreate }) {
     let active = true;
     userRepository.directory(session.user.companyId, "", { size: 100 })
       .then((page) => {
-        if (active) setUserOptions(page.content.filter((user) => user.id !== session.user.id));
+        if (!active) return;
+        const all = page.content;
+        setUserOptions(all);
+        // Current user pre-selected
+        const me = all.find((u) => u.id === session.user.id);
+        if (me) {
+          setValue("participantUsernames", [me]);
+          setValue("participantCount", 1);
+        }
       })
       .catch(() => {
         if (active) setUserOptions([]);
@@ -130,7 +138,7 @@ export function BookingDialog({ open, onClose, rooms, onCreate }) {
                 multiple
                 options={userOptions}
                 value={field.value}
-                getOptionLabel={(option) => `${option.fullName} · ${option.email}`}
+                getOptionLabel={(option) => option.username ? `${option.fullName} (@${option.username})` : option.fullName}
                 isOptionEqualToValue={(option, value) => option.id === value.id}
                 onChange={(_, values) => {
                   field.onChange(values);
@@ -141,7 +149,7 @@ export function BookingDialog({ open, onClose, rooms, onCreate }) {
                 renderTags={(values, getTagProps) => values.map((value, index) => (
                   <Chip
                     {...getTagProps({ index })}
-                    key={value}
+                    key={value.id}
                     label={value.fullName}
                     size="small"
                     className={styles.userChip}
@@ -150,8 +158,9 @@ export function BookingDialog({ open, onClose, rooms, onCreate }) {
                 renderOption={(props, option) => (
                   <li {...props} key={option.id}>
                     <div className={styles.userOption}>
-                      <strong>{option.fullName}</strong>
-                      <small>{option.email}</small>
+                      <strong>
+                        {option.fullName} {option.username && <span style={{ opacity: 0.7, fontWeight: 400, marginLeft: 6 }}>(@{option.username})</span>}
+                      </strong>
                     </div>
                   </li>
                 )}
