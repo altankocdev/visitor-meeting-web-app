@@ -3,6 +3,8 @@ export const reservationStatuses = {
   PENDING_APPROVAL: { label: "Onay bekliyor", color: "#E3933B" },
   COMPLETED: { label: "Tamamlandı", color: "#70818B" },
   CANCELLED: { label: "İptal edildi", color: "#C44250" },
+  REJECTED: { label: "Reddedildi", color: "#C44250" },
+  EXPIRED: { label: "Süresi doldu", color: "#70818B" },
 };
 
 export const rooms = [

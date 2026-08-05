@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import "dayjs/locale/tr";
+import { useState } from "react";
 import { rooms } from "../../domain/models/meeting";
 import styles from "./MeetingDetailsPanel.module.css";
 
@@ -29,9 +30,12 @@ const statusLabels = {
   BUSY: "Oda dolu",
   COMPLETED: "Tamamlandı",
   CANCELLED: "İptal edildi",
+  REJECTED: "Reddedildi",
+  EXPIRED: "Süresi doldu",
 };
 
 export function MeetingDetailsPanel({ open, meetings, onClose }) {
+  const [expandedOrganizerId, setExpandedOrganizerId] = useState(null);
   const firstMeeting = meetings[0];
   const multiple = meetings.length > 1;
   const dateLabel = firstMeeting
@@ -71,11 +75,12 @@ export function MeetingDetailsPanel({ open, meetings, onClose }) {
 
         <div className={`${styles.list} ${multiple ? styles.multipleList : ""}`}>
           {meetings.map((meeting) => {
-            const isPrivate = !meeting.isOwn;
+            const isPrivate = !meeting.isOwn && !meeting.canViewDetails;
             const statusClass = styles[meeting.status?.toLowerCase()] ?? "";
-            const room = rooms.find((item) =>
+            const room = meeting.roomDetails ?? rooms.find((item) =>
               item.id === Number(meeting.roomId) || item.name === meeting.room
             );
+            const participantUsers = meeting.participantUsers ?? [];
 
             return (
               <article
@@ -93,6 +98,13 @@ export function MeetingDetailsPanel({ open, meetings, onClose }) {
                   </span>
                 </div>
 
+                {!isPrivate && meeting.description && (
+                  <div className={styles.description}>
+                    <small>TOPLANTI AÇIKLAMASI</small>
+                    <p>{meeting.description}</p>
+                  </div>
+                )}
+
                 <div className={styles.details}>
                   <div>
                     <AccessTimeRounded />
@@ -107,19 +119,39 @@ export function MeetingDetailsPanel({ open, meetings, onClose }) {
                   )}
 
                   {!isPrivate && meeting.organizer && (
-                    <div>
+                    <button
+                      className={`${styles.organizerSummary} ${expandedOrganizerId === meeting.id ? styles.expandedOrganizer : ""}`}
+                      type="button"
+                      aria-expanded={expandedOrganizerId === meeting.id}
+                      title="Organizatörün tam bilgilerini göster"
+                      onClick={() => setExpandedOrganizerId((current) => current === meeting.id ? null : meeting.id)}
+                    >
                       <PersonOutlineRounded />
                       <span>
                         <small>Organizatör</small>
                         <strong>
-                          {meeting.organizer === "Siz"
-                            ? "Siz"
-                            : `@${meeting.organizer.replace(/^@/, "")}`}
+                          {meeting.organizer === "Siz" ? "Siz" : meeting.organizer}
                         </strong>
+                        {expandedOrganizerId === meeting.id && meeting.organizerDetails?.email && (
+                          <em>{meeting.organizerDetails.email}</em>
+                        )}
                       </span>
-                    </div>
+                    </button>
                   )}
                 </div>
+
+                {!isPrivate && meeting.organizerDetails && (
+                  <div className={styles.organizerDetails}>
+                    <span className={styles.personAvatar}>
+                      {(meeting.organizerDetails.fullName || meeting.organizerDetails.email || "O").slice(0, 2).toLocaleUpperCase("tr-TR")}
+                    </span>
+                    <div>
+                      <small>ORGANİZATÖR</small>
+                      <strong>{meeting.organizerDetails.fullName || "İsimsiz kullanıcı"}</strong>
+                      <span>{meeting.organizerDetails.email}</span>
+                    </div>
+                  </div>
+                )}
 
                 {room && (
                   <div className={styles.roomDetails}>
@@ -153,14 +185,27 @@ export function MeetingDetailsPanel({ open, meetings, onClose }) {
                   </div>
                 )}
 
-                {!isPrivate && meeting.participantUsernames?.length > 0 && (
-                  <div className={styles.usernames}>
-                    <small><AlternateEmailRounded />Eklenen kullanıcılar</small>
-                    <div>
-                      {meeting.participantUsernames.map((username) => (
-                        <span key={username}>@{username.replace(/^@/, "")}</span>
-                      ))}
+                {!isPrivate && (
+                  <div className={styles.participantSection}>
+                    <div className={styles.sectionTitle}>
+                      <span><Groups2Outlined /></span>
+                      <div><small>KATILIMCILAR</small><strong>{participantUsers.length} kişi</strong></div>
                     </div>
+                    {participantUsers.length > 0 ? (
+                      <div className={styles.participantList}>
+                        {participantUsers.map((participant) => (
+                          <div className={styles.participant} key={participant.id ?? participant.email}>
+                            <span className={styles.personAvatar}>
+                              {(participant.fullName || participant.email || "K").slice(0, 2).toLocaleUpperCase("tr-TR")}
+                            </span>
+                            <div>
+                              <strong>{participant.fullName || "İsimsiz katılımcı"}</strong>
+                              <small><AlternateEmailRounded />{participant.email || "E-posta bilgisi yok"}</small>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : <p className={styles.emptyParticipants}>Bu rezervasyona katılımcı eklenmemiş.</p>}
                   </div>
                 )}
 
@@ -168,8 +213,8 @@ export function MeetingDetailsPanel({ open, meetings, onClose }) {
                   <div className={styles.privacy}>
                     <LockOutlined />
                     <p>
-                      Bu rezervasyon başka bir kullanıcıya ait. Çalışan yetkiniz
-                      nedeniyle başlık ve katılımcı bilgileri gizlidir.
+                      Bu rezervasyon başka bir kullanıcıya ait. Rezervasyon detayı
+                      görüntüleme yetkiniz olmadığı için bilgiler gizlidir.
                     </p>
                   </div>
                 )}
