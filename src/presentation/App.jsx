@@ -11,6 +11,7 @@ import { AuditLogsPage } from "./pages/AuditLogsPage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { CompanySettingsPage } from "./pages/CompanySettingsPage";
 import { CompanyOwnerDashboardPage } from "./pages/CompanyOwnerDashboardPage";
+import { EmployeeNotificationsPage } from "./pages/EmployeeNotificationsPage";
 import { ManagementNotificationsPage } from "./pages/ManagementNotificationsPage";
 import { RoomsPage } from "./pages/RoomsPage";
 import { RolesPage } from "./pages/RolesPage";
@@ -47,7 +48,7 @@ export function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/reservations" element={<ReservationsPage />} />
         <Route path="/rooms" element={<RoomsPage />} />
-        <Route path="/notifications" element={<ManagementNotificationsPage />} />
+        <Route path="/notifications" element={<EmployeeNotificationsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
