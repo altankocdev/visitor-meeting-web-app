@@ -90,21 +90,8 @@ export function DashboardPage() {
   );
 
   const calendarReservations = useMemo(
-    () => reservations.map((item) => {
-      const isOwn = checkIsOwn(item);
-
-      return isOwn
-        ? { ...item, isOwn: true }
-        : {
-            ...item,
-            title: "Dolu",
-            participants: null,
-            status: "BUSY",
-            organizer: null,
-            isOwn: false,
-          };
-    }),
-    [reservations, checkIsOwn],
+    () => ownReservations.map((item) => ({ ...item, isOwn: true })),
+    [ownReservations],
   );
 
   const canCreateReservation = hasPermission(

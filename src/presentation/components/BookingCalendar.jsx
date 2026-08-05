@@ -21,7 +21,7 @@ export function BookingCalendar({
   initialDate = dayjs().format("YYYY-MM-DD"),
   mode = "employee",
   title = "Toplantı ve oda takvimi",
-  description = "Oda doluluklarını ve kendi rezervasyonlarınızı saat bazında görüntüleyin.",
+  description = "Kendi toplantı ve rezervasyonlarınızı saat bazında görüntüleyin.",
 }) {
   const calendarRef = useRef(null);
   const [view, setView] = useState("timeGridWeek");

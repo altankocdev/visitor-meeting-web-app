@@ -1,2 +1,194 @@
-﻿.form{display:flex;flex-direction:column;gap:16px;padding-top:12px!important}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.userOption{display:flex;flex-direction:column;gap:2px}.userOption strong{color:var(--color-deep-blue);font-size: var(--font-base)}.userOption small{color:#83959e;font-size: var(--font-sm)}.userChip{color:var(--color-deep-blue)!important;background:#e4f2fb!important;font-size: var(--font-sm)!important;font-weight:700!important}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 12px !important;
+}
 
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.timeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 4px;
+}
+
+.timeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.timeTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.timeTitle svg {
+  font-size: 1.2rem;
+  color: #0284c7;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selectedSummary {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid #bae6fd;
+}
+
+.clearBtn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.clearBtn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.timeSubtext {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: -4px;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.slotButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  min-height: 52px;
+  user-select: none;
+}
+
+.slotButton:hover:not(:disabled) {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  color: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
+}
+
+.slotSelected {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+  color: #ffffff !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.35) !important;
+}
+
+.slotSelected .slotLabel {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.slotDisabled {
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  border: 1px dashed #cbd5e1 !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
+}
+
+.strikeThrough {
+  text-decoration: line-through;
+  text-decoration-color: #ef4444;
+  text-decoration-thickness: 2px;
+  color: #64748b;
+}
+
+.busyBadge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #dc2626;
+  background: #fee2e2;
+  padding: 1px 7px;
+  border-radius: 4px;
+  margin-top: 3px;
+  text-decoration: none !important;
+  letter-spacing: 0.5px;
+}
+
+.userOption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.userOption strong {
+  color: var(--color-deep-blue);
+  font-size: var(--font-base);
+}
+
+.userOption small {
+  color: #83959e;
+  font-size: var(--font-sm);
+}
+
+.userChip {
+  color: var(--color-deep-blue) !important;
+  background: #e4f2fb !important;
+  font-size: var(--font-sm) !important;
+  font-weight: 700 !important;
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .slotGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
