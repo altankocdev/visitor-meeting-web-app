@@ -31,8 +31,41 @@ export const organizationRepository = {
     });
     return unwrapApiResponse(response);
   },
+  async createRoom(companyId, data) {
+    const response = await apiClient.post("/rooms", data, { params: { companyId } });
+    return unwrapApiResponse(response);
+  },
+  async updateRoom(companyId, id, data) {
+    const response = await apiClient.put(`/rooms/${id}`, data, { params: { companyId } });
+    return unwrapApiResponse(response);
+  },
+  async activateRoom(companyId, id) {
+    const response = await apiClient.patch(`/rooms/${id}/activate`, null, { params: { companyId } });
+    return unwrapApiResponse(response);
+  },
+  async deactivateRoom(companyId, id) {
+    const response = await apiClient.patch(`/rooms/${id}/deactivate`, null, { params: { companyId } });
+    return unwrapApiResponse(response);
+  },
   async features(companyId, params = {}) {
     const response = await apiClient.get(`/companies/${companyId}/features`, { params });
     return unwrapApiResponse(response);
   },
+  async createFeature(companyId, data) {
+    const response = await apiClient.post(`/companies/${companyId}/features`, data);
+    return unwrapApiResponse(response);
+  },
+  async updateFeature(companyId, id, data) {
+    const response = await apiClient.put(`/companies/${companyId}/features/${id}`, data);
+    return unwrapApiResponse(response);
+  },
+  async activateFeature(companyId, id) {
+    const response = await apiClient.patch(`/companies/${companyId}/features/${id}/activate`);
+    return unwrapApiResponse(response);
+  },
+  async deactivateFeature(companyId, id) {
+    const response = await apiClient.patch(`/companies/${companyId}/features/${id}/deactivate`);
+    return unwrapApiResponse(response);
+  },
 };
+

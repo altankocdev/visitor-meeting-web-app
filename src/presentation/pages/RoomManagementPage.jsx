@@ -1,5 +1,7 @@
 import { AddRounded, EditOutlined, GroupsOutlined, LocationOnOutlined, MeetingRoomOutlined, SearchRounded, SettingsSuggestOutlined, ToggleOffOutlined } from "@mui/icons-material";
+import { Alert, Snackbar } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
+import { getApiErrorMessage } from "../../infrastructure/api/apiError";
 import { organizationRepository } from "../../infrastructure/repositories/organizationRepository";
 import { useAuth } from "../auth/AuthContext";
 import { AdminSidebar } from "../components/AdminSidebar";
@@ -18,6 +20,7 @@ export function RoomManagementPage() {
   const [editRoom, setEditRoom] = useState(null);
   const [editFeature, setEditFeature] = useState(null);
   const [statusTarget, setStatusTarget] = useState(null);
+  const [notice, setNotice] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -42,21 +45,77 @@ export function RoomManagementPage() {
   const filteredRooms = useMemo(() => rooms.filter((room) => `${room.name} ${room.location} ${room.description}`.toLocaleLowerCase("tr-TR").includes(search.toLocaleLowerCase("tr-TR"))), [rooms, search]);
   const filteredFeatures = useMemo(() => features.filter((feature) => `${feature.name} ${feature.description}`.toLocaleLowerCase("tr-TR").includes(search.toLocaleLowerCase("tr-TR"))), [features, search]);
 
-  const saveRoom = (data) => {
-    const normalized = { ...data, capacity: Number(data.capacity), featureIds: (data.featureIds || []).map(Number) };
-    if (editRoom) setRooms((current) => current.map((item) => item.id === editRoom.id ? { ...item, ...normalized } : item));
-    else setRooms((current) => [{ id: Date.now(), ...normalized, active: true }, ...current]);
-    setRoomForm(false); setEditRoom(null);
+  const saveRoom = async (data) => {
+    const normalized = {
+      name: data.name,
+      location: data.location || "",
+      capacity: Number(data.capacity),
+      description: data.description || "",
+      featureIds: (data.featureIds || []).map(Number)
+    };
+
+    try {
+      if (editRoom) {
+        const updated = await organizationRepository.updateRoom(session.user.companyId, editRoom.id, normalized);
+        setRooms((current) => current.map((item) => item.id === editRoom.id ? { ...updated, featureIds: (updated.features || []).map(f => f.id) } : item));
+        setNotice({ severity: "success", text: "Oda başarıyla güncellendi." });
+      } else {
+        const created = await organizationRepository.createRoom(session.user.companyId, normalized);
+        setRooms((current) => [{ ...created, featureIds: (created.features || []).map(f => f.id) }, ...current]);
+        setNotice({ severity: "success", text: "Oda başarıyla oluşturuldu." });
+      }
+      setRoomForm(false);
+      setEditRoom(null);
+    } catch (error) {
+      setNotice({ severity: "error", text: getApiErrorMessage(error, "Oda kaydedilemedi.") });
+    }
   };
-  const saveFeature = (data) => {
-    if (editFeature) setFeatures((current) => current.map((item) => item.id === editFeature.id ? { ...item, ...data } : item));
-    else setFeatures((current) => [{ id: Date.now(), ...data, active: true }, ...current]);
-    setFeatureForm(false); setEditFeature(null);
+
+  const saveFeature = async (data) => {
+    try {
+      if (editFeature) {
+        const updated = await organizationRepository.updateFeature(session.user.companyId, editFeature.id, data);
+        setFeatures((current) => current.map((item) => item.id === editFeature.id ? updated : item));
+        setNotice({ severity: "success", text: "Özellik başarıyla güncellendi." });
+      } else {
+        const created = await organizationRepository.createFeature(session.user.companyId, data);
+        setFeatures((current) => [created, ...current]);
+        setNotice({ severity: "success", text: "Özellik başarıyla oluşturuldu." });
+      }
+      setFeatureForm(false);
+      setEditFeature(null);
+    } catch (error) {
+      setNotice({ severity: "error", text: getApiErrorMessage(error, "Özellik kaydedilemedi.") });
+    }
   };
-  const toggleStatus = () => {
-    if (statusTarget.type === "room") setRooms((current) => current.map((item) => item.id === statusTarget.item.id ? { ...item, active: !item.active } : item));
-    else setFeatures((current) => current.map((item) => item.id === statusTarget.item.id ? { ...item, active: !item.active } : item));
-    setStatusTarget(null);
+
+  const toggleStatus = async () => {
+    try {
+      if (statusTarget.type === "room") {
+        if (statusTarget.item.active) {
+          await organizationRepository.deactivateRoom(session.user.companyId, statusTarget.item.id);
+          setRooms((current) => current.map((item) => item.id === statusTarget.item.id ? { ...item, active: false } : item));
+          setNotice({ severity: "success", text: "Oda pasifleştirildi." });
+        } else {
+          await organizationRepository.activateRoom(session.user.companyId, statusTarget.item.id);
+          setRooms((current) => current.map((item) => item.id === statusTarget.item.id ? { ...item, active: true } : item));
+          setNotice({ severity: "success", text: "Oda aktifleştirildi." });
+        }
+      } else {
+        if (statusTarget.item.active) {
+          await organizationRepository.deactivateFeature(session.user.companyId, statusTarget.item.id);
+          setFeatures((current) => current.map((item) => item.id === statusTarget.item.id ? { ...item, active: false } : item));
+          setNotice({ severity: "success", text: "Özellik pasifleştirildi." });
+        } else {
+          await organizationRepository.activateFeature(session.user.companyId, statusTarget.item.id);
+          setFeatures((current) => current.map((item) => item.id === statusTarget.item.id ? { ...item, active: true } : item));
+          setNotice({ severity: "success", text: "Özellik aktifleştirildi." });
+        }
+      }
+      setStatusTarget(null);
+    } catch (error) {
+      setNotice({ severity: "error", text: getApiErrorMessage(error, "Durum değiştirilemedi.") });
+    }
   };
 
   return <div className={styles.shell}><AdminSidebar session={session} /><div className={styles.main}><AdminTopbar /><main className={styles.content}>
@@ -71,5 +130,10 @@ export function RoomManagementPage() {
   <RoomFormDialog open={roomForm || Boolean(editRoom)} room={editRoom} features={features} onClose={() => { setRoomForm(false); setEditRoom(null); }} onSave={saveRoom} />
   <FeatureFormDialog open={featureForm || Boolean(editFeature)} feature={editFeature} onClose={() => { setFeatureForm(false); setEditFeature(null); }} onSave={saveFeature} />
   <ResourceStatusDialog item={statusTarget?.item} type={statusTarget?.type} onClose={() => setStatusTarget(null)} onConfirm={toggleStatus} />
+  <Snackbar open={Boolean(notice)} autoHideDuration={6000} onClose={() => setNotice(null)}>
+    <Alert severity={notice?.severity} variant="filled" onClose={() => setNotice(null)}>
+      {notice?.text}
+    </Alert>
+  </Snackbar>
   </div>;
 }
