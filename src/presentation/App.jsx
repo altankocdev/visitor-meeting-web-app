@@ -25,9 +25,12 @@ export function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/super-admin/login" element={<SuperAdminLoginPage />} />
+
       <Route element={<ProtectedRoute />}>
         <Route path="/change-password" element={<ChangePasswordPage />} />
+
         <Route path="/super-admin/dashboard" element={<SuperAdminDashboardPage />} />
+
         <Route path="/management/dashboard" element={<CompanyOwnerDashboardPage />} />
         <Route path="/management/users" element={<UsersPage />} />
         <Route path="/management/departments" element={<DepartmentsPage />} />
@@ -39,11 +42,14 @@ export function App() {
         <Route path="/management/audit-logs" element={<AuditLogsPage />} />
         <Route path="/management/notifications" element={<ManagementNotificationsPage />} />
         <Route path="/management/company-settings" element={<CompanySettingsPage />} />
+
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/reservations" element={<ReservationsPage />} />
         <Route path="/rooms" element={<RoomsPage />} />
+        <Route path="/notifications" element={<ManagementNotificationsPage />} />
       </Route>
+
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
