@@ -85,16 +85,24 @@ export function DashboardPage() {
   );
 
   const upcomingReservations = useMemo(
-    () => ownReservations.filter((item) => dayjs(item.end).isAfter(dayjs())),
+    () => ownReservations.filter(
+      (item) => ["ACTIVE", "PENDING_APPROVAL"].includes(item.status)
+        && dayjs(item.end).isAfter(dayjs()),
+    ),
     [ownReservations],
+  );
+
+  const canViewReservationDetails = user.owner || hasPermission(
+    session.permissions,
+    permissions.RESERVATION_VIEW_DETAILS,
   );
 
   const calendarReservations = useMemo(
     () => reservations.map((item) => {
       const isOwn = checkIsOwn(item);
 
-      return isOwn
-        ? { ...item, isOwn: true }
+      return isOwn || canViewReservationDetails
+        ? { ...item, isOwn, canViewDetails: true }
         : {
             ...item,
             title: "Dolu",
@@ -102,9 +110,10 @@ export function DashboardPage() {
             status: "BUSY",
             organizer: null,
             isOwn: false,
+            canViewDetails: false,
           };
     }),
-    [reservations, checkIsOwn],
+    [reservations, checkIsOwn, canViewReservationDetails],
   );
 
   const canCreateReservation = hasPermission(

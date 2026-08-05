@@ -1,4 +1,4 @@
-import { HelpOutlineRounded, LogoutRounded } from "@mui/icons-material";
+import { DashboardRounded, HelpOutlineRounded, LogoutRounded } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { superAdminNavigation } from "../config/superAdminNavigation";
 import { Brand } from "./Brand";
@@ -15,6 +15,15 @@ export function AdminSidebar() {
     <aside className={styles.sidebar}>
       <Brand />
       <div className={styles.platform}><span>{session?.user.roleLabel?.toLocaleUpperCase("tr-TR") || "SÜPER ADMIN"}</span><small>{session?.user.companyName || "Yaşar Bilgi"} yönetimi</small></div>
+      {!session.isPlatformAdmin && session.user.owner ? (
+        <button
+          className={styles.workspaceButton}
+          type="button"
+          onClick={() => navigate("/dashboard")}
+        >
+          <DashboardRounded /><span>Çalışma alanına geç</span>
+        </button>
+      ) : null}
       <nav className={styles.nav} aria-label="Süper admin menüsü">
         <small>ŞİRKET YÖNETİMİ</small>
         {superAdminNavigation.map(({ badge, icon: Icon, label, path }, index) => {
