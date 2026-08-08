@@ -6,6 +6,7 @@ import {
   VisibilityOffOutlined,
   VisibilityOutlined,
 } from "@mui/icons-material";
+import { CircularProgress } from "@mui/material";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -44,11 +45,14 @@ export function LoginPage() {
         remember: values.remember,
       });
       await refreshSession();
-      navigate(session.mustChangePassword
-        ? "/change-password"
-        : "/dashboard");
+      navigate(session.mustChangePassword ? "/change-password" : "/dashboard");
     } catch (error) {
-      setSubmitError(getApiErrorMessage(error, "Oturum açılamadı. Bilgilerinizi kontrol edin."));
+      setSubmitError(
+        getApiErrorMessage(
+          error,
+          "Oturum açılamadı. Bilgilerinizi kontrol edin.",
+        ),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -57,26 +61,49 @@ export function LoginPage() {
   return (
     <main className={styles.page}>
       <section className={styles.visual} aria-label="Modern toplantı odası">
-        <div className={styles.brand}><span><CalendarMonthRounded /></span>meetly</div>
+        <div className={styles.brand}>
+          <span>
+            <CalendarMonthRounded />
+          </span>
+          meetly
+        </div>
         <div className={styles.copy}>
           <small>AKILLI ÇALIŞMA ALANLARI</small>
-          <h1>Doğru oda.<br /><em>Tam zamanında.</em></h1>
-          <p>Toplantılarınızı birkaç saniyede planlayın, ekibinizle aynı ritimde çalışın.</p>
+          <h1>
+            Doğru oda.
+            <br />
+            <em>Tam zamanında.</em>
+          </h1>
+          <p>
+            Toplantılarınızı birkaç saniyede planlayın, ekibinizle aynı ritimde
+            çalışın.
+          </p>
         </div>
       </section>
 
       <section className={styles.formPanel}>
-        <button className={styles.adminLink} type="button" onClick={() => navigate("/super-admin/login")}>
-          <AdminPanelSettingsRounded />Sistem yöneticisi
+        <button
+          className={styles.adminLink}
+          type="button"
+          onClick={() => navigate("/super-admin/login")}
+        >
+          <AdminPanelSettingsRounded />
+          Sistem yöneticisi
         </button>
 
-        <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form
+          className={styles.form}
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+        >
           <small className={styles.eyebrow}>TEKRAR HOŞ GELDİNİZ</small>
           <h2>Oturum açın</h2>
           <p>Kullanıcı adınız veya kurumsal e-posta adresinizle devam edin.</p>
 
           <label htmlFor="companySlug">Şirket kodu</label>
-          <div className={`${styles.input} ${errors.companySlug ? styles.error : ""}`}>
+          <div
+            className={`${styles.input} ${errors.companySlug ? styles.error : ""}`}
+          >
             <PersonOutlineRounded />
             <input
               id="companySlug"
@@ -92,10 +119,16 @@ export function LoginPage() {
               })}
             />
           </div>
-          {errors.companySlug && <span className={styles.errorText}>{errors.companySlug.message}</span>}
+          {errors.companySlug && (
+            <span className={styles.errorText}>
+              {errors.companySlug.message}
+            </span>
+          )}
 
           <label htmlFor="loginIdentifier">Kullanıcı adı veya e-posta</label>
-          <div className={`${styles.input} ${errors.loginIdentifier ? styles.error : ""}`}>
+          <div
+            className={`${styles.input} ${errors.loginIdentifier ? styles.error : ""}`}
+          >
             <PersonOutlineRounded />
             <input
               id="loginIdentifier"
@@ -107,13 +140,19 @@ export function LoginPage() {
               })}
             />
           </div>
-          {errors.loginIdentifier && <span className={styles.errorText}>{errors.loginIdentifier.message}</span>}
+          {errors.loginIdentifier && (
+            <span className={styles.errorText}>
+              {errors.loginIdentifier.message}
+            </span>
+          )}
 
           <div className={styles.labelRow}>
             <label htmlFor="password">Şifre</label>
             <button type="button">Şifremi unuttum</button>
           </div>
-          <div className={`${styles.input} ${errors.password ? styles.error : ""}`}>
+          <div
+            className={`${styles.input} ${errors.password ? styles.error : ""}`}
+          >
             <LockOutlined />
             <input
               id="password"
@@ -128,23 +167,45 @@ export function LoginPage() {
               aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
               onClick={() => setShowPassword((value) => !value)}
             >
-              {showPassword ? <VisibilityOffOutlined /> : <VisibilityOutlined />}
+              {showPassword ? (
+                <VisibilityOffOutlined />
+              ) : (
+                <VisibilityOutlined />
+              )}
             </button>
           </div>
-          {errors.password && <span className={styles.errorText}>{errors.password.message}</span>}
+          {errors.password && (
+            <span className={styles.errorText}>{errors.password.message}</span>
+          )}
 
           <label className={styles.remember}>
             <input type="checkbox" {...register("remember")} />
             <span>Beni hatırla</span>
           </label>
 
-          {submitError && <span className={styles.errorText} role="alert">{submitError}</span>}
+          {submitError && (
+            <span className={styles.errorText} role="alert">
+              {submitError}
+            </span>
+          )}
           <button className={styles.submit} type="submit" disabled={submitting}>
-            <span>{submitting ? "Oturum açılıyor..." : "Oturum aç"}</span><b>→</b>
+            <span>{submitting ? "Oturum açılıyor..." : "Oturum aç"}</span>
+            <b>→</b>
           </button>
-          <p className={styles.signup}>Şirketiniz henüz Meetly&apos;de değil mi? <button type="button">Şirket oluşturun</button></p>
+          <p className={styles.signup}>
+            Şirketiniz henüz Meetly&apos;de değil mi?{" "}
+            <button type="button">Şirket oluşturun</button>
+          </p>
         </form>
       </section>
+      {submitting && (
+        <div className={styles.loadingOverlay} role="status" aria-live="polite">
+          <div className={styles.loadingCard}>
+            <CircularProgress size={44} thickness={4} />
+            <span>Oturum açılıyor...</span>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
