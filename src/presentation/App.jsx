@@ -20,38 +20,63 @@ import { SuperAdminLoginPage } from "./pages/SuperAdminLoginPage";
 import { SuperAdminDashboardPage } from "./pages/SuperAdminDashboardPage";
 import { UsersPage } from "./pages/UsersPage";
 import { ProtectedRoute } from "./routing/ProtectedRoute";
+import { LoadingOverlay } from "./components/LoadingOverlay";
+import { useAuth } from "./auth/AuthContext";
 
 export function App() {
+  const { loggingOut } = useAuth();
+
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/super-admin/login" element={<SuperAdminLoginPage />} />
+    <>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/super-admin/login" element={<SuperAdminLoginPage />} />
 
-      <Route element={<ProtectedRoute />}>
-        <Route path="/change-password" element={<ChangePasswordPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/change-password" element={<ChangePasswordPage />} />
 
-        <Route path="/super-admin/dashboard" element={<SuperAdminDashboardPage />} />
+          <Route
+            path="/super-admin/dashboard"
+            element={<SuperAdminDashboardPage />}
+          />
 
-        <Route path="/management/dashboard" element={<CompanyOwnerDashboardPage />} />
-        <Route path="/management/users" element={<UsersPage />} />
-        <Route path="/management/departments" element={<DepartmentsPage />} />
-        <Route path="/management/roles" element={<RolesPage />} />
-        <Route path="/management/job-titles" element={<JobTitlesPage />} />
-        <Route path="/management/rooms" element={<RoomManagementPage />} />
-        <Route path="/management/reservations" element={<AdminReservationsPage />} />
-        <Route path="/management/reports" element={<ReportsPage />} />
-        <Route path="/management/audit-logs" element={<AuditLogsPage />} />
-        <Route path="/management/notifications" element={<ManagementNotificationsPage />} />
-        <Route path="/management/company-settings" element={<CompanySettingsPage />} />
+          <Route
+            path="/management/dashboard"
+            element={<CompanyOwnerDashboardPage />}
+          />
+          <Route path="/management/users" element={<UsersPage />} />
+          <Route path="/management/departments" element={<DepartmentsPage />} />
+          <Route path="/management/roles" element={<RolesPage />} />
+          <Route path="/management/job-titles" element={<JobTitlesPage />} />
+          <Route path="/management/rooms" element={<RoomManagementPage />} />
+          <Route
+            path="/management/reservations"
+            element={<AdminReservationsPage />}
+          />
+          <Route path="/management/reports" element={<ReportsPage />} />
+          <Route path="/management/audit-logs" element={<AuditLogsPage />} />
+          <Route
+            path="/management/notifications"
+            element={<ManagementNotificationsPage />}
+          />
+          <Route
+            path="/management/company-settings"
+            element={<CompanySettingsPage />}
+          />
 
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/reservations" element={<ReservationsPage />} />
-        <Route path="/rooms" element={<RoomsPage />} />
-        <Route path="/notifications" element={<EmployeeNotificationsPage />} />
-      </Route>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/reservations" element={<ReservationsPage />} />
+          <Route path="/rooms" element={<RoomsPage />} />
+          <Route
+            path="/notifications"
+            element={<EmployeeNotificationsPage />}
+          />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+      {loggingOut && <LoadingOverlay label="Çıkış yapılıyor..." />}
+    </>
   );
 }

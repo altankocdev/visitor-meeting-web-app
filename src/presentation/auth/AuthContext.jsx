@@ -1,6 +1,14 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { authRepository } from "../../infrastructure/repositories/authRepository";
 import { tokenStorage } from "../../infrastructure/auth/tokenStorage";
+import { withMinimumDelay } from "../utils/withMinimumDelay";
 
 const AuthContext = createContext(null);
 
@@ -11,7 +19,9 @@ function initials(firstName, lastName, fallback = "ME") {
 
 function mapSession(payload, isPlatformAdmin) {
   if (isPlatformAdmin) {
-    const names = (payload.fullName || "Platform yöneticisi").trim().split(/\s+/);
+    const names = (payload.fullName || "Platform yöneticisi")
+      .trim()
+      .split(/\s+/);
     return {
       isPlatformAdmin: true,
       permissions: [],
@@ -43,14 +53,18 @@ function mapSession(payload, isPlatformAdmin) {
       initials: initials(payload.firstName, payload.lastName, payload.username),
       owner: payload.owner,
       roles: roleNames,
-      roleLabel: payload.owner ? "Şirket sahibi" : (roleNames[0] ?? "Kullanıcı"),
+      roleLabel: payload.owner
+        ? "Şirket sahibi"
+        : (roleNames[0] ?? "Kullanıcı"),
     },
   };
 }
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
-  const [loading, setLoading] = useState(Boolean(tokenStorage.getAccessToken()));
+  const [loading, setLoading] = useState(
+    Boolean(tokenStorage.getAccessToken()),
+  );
 
   const refreshSession = useCallback(async () => {
     if (!tokenStorage.getAccessToken()) {
@@ -77,14 +91,21 @@ export function AuthProvider({ children }) {
     refreshSession().catch(() => {});
   }, [refreshSession]);
 
+  const [loggingOut, setLoggingOut] = useState(false);
+
   const logout = useCallback(async () => {
-    await authRepository.logout();
-    setSession(null);
+    setLoggingOut(true);
+    try {
+      await withMinimumDelay(authRepository.logout(), 2000);
+    } finally {
+      setSession(null);
+      setLoggingOut(false);
+    }
   }, []);
 
   const value = useMemo(
-    () => ({ session, loading, refreshSession, logout }),
-    [session, loading, refreshSession, logout],
+    () => ({ session, loading, refreshSession, logout, loggingOut }),
+    [session, loading, refreshSession, logout, loggingOut],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -94,4 +115,3 @@ export function useAuth() {
   if (!context) throw new Error("useAuth must be used inside AuthProvider");
   return context;
 }
-

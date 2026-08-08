@@ -1,6 +1,13 @@
-import { AdminPanelSettingsRounded, HelpOutlineRounded, LogoutRounded } from "@mui/icons-material";
+import {
+  AdminPanelSettingsRounded,
+  HelpOutlineRounded,
+  LogoutRounded,
+} from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
-import { canAccessManagement, hasPermission } from "../../domain/auth/permissions";
+import {
+  canAccessManagement,
+  hasPermission,
+} from "../../domain/auth/permissions";
 import { useAuth } from "../auth/AuthContext";
 import { employeeNavigation } from "../config/employeeNavigation";
 import { Brand } from "./Brand";
@@ -44,7 +51,11 @@ export function Sidebar({ session: providedSession }) {
 
       <div className={styles.bottom}>
         {canAccessManagement(session) ? (
-          <button className={styles.button} type="button" onClick={() => navigate("/management/dashboard")}>
+          <button
+            className={styles.button}
+            type="button"
+            onClick={() => navigate("/management/dashboard")}
+          >
             <AdminPanelSettingsRounded />
             Şirket yönetimi
           </button>
@@ -54,10 +65,14 @@ export function Sidebar({ session: providedSession }) {
           Yardım merkezi
         </button>
 
-        <button className={styles.button} type="button" onClick={async () => {
-          await logout();
-          navigate("/login", { replace: true });
-        }}>
+        <button
+          className={styles.button}
+          type="button"
+          onClick={async () => {
+            await logout();
+            navigate("/login", { replace: true });
+          }}
+        >
           <LogoutRounded />
           Çıkış yap
         </button>
