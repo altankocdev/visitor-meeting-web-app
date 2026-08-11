@@ -22,6 +22,16 @@ export function Sidebar({ session: providedSession }) {
   const visibleItems = employeeNavigation.filter((item) =>
     hasPermission(session.permissions, item.permission),
   );
+  const displayName =
+    [session.user.firstName, session.user.lastName].filter(Boolean).join(" ") ||
+    session.user.username ||
+    session.user.email;
+  const identityDetails = [
+    session.user.roleLabel,
+    session.user.companyName,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <aside className={styles.sidebar}>
@@ -77,14 +87,18 @@ export function Sidebar({ session: providedSession }) {
           Çıkış yap
         </button>
 
-        <div className={styles.workspace}>
+        <button
+          className={styles.workspace}
+          type="button"
+          onClick={() => navigate("/profile")}
+          aria-label="Profil sayfasını aç"
+        >
           <span className={styles.avatar}>{session.user.initials}</span>
           <div>
-            <b>{session.user.companyName}</b>
-            <small>{session.user.roleLabel}</small>
+            <b title={displayName}>{displayName}</b>
+            <small title={identityDetails}>{identityDetails}</small>
           </div>
-          <strong>⌄</strong>
-        </div>
+        </button>
       </div>
     </aside>
   );

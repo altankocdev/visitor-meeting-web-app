@@ -6,17 +6,19 @@
 .button:hover, .active { color: white; background: rgba(187, 225, 250, .1); }
 .indicator { position: absolute; right: -18px; width: 3px; height: 22px; border-radius: 3px 0 0 3px; background: var(--color-pale-blue); }
 .bottom { margin-top: auto; }
-.workspace { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 9px; margin-top: 17px; padding: 13px 10px 0; border-top: 1px solid rgba(187, 225, 250, .13); }
+.workspace { width: 100%; display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 9px; margin-top: 17px; padding: 13px 10px 0; border: 0; border-top: 1px solid rgba(187, 225, 250, .13); color: inherit; background: transparent; text-align: left; }
+.workspace:hover b { color: var(--color-pale-blue); }
+.workspace:focus-visible { border-radius: 8px; outline: 2px solid rgba(187, 225, 250, .75); outline-offset: 2px; }
 .avatar { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; color: var(--color-deep-blue); background: var(--color-pale-blue); font-size: var(--font-md); font-weight: 800; }
-.workspace div { min-width: 0; display: flex; flex-direction: column; }
-.workspace b { overflow: hidden; color: white; font-size: var(--font-base); text-overflow: ellipsis; white-space: nowrap; }
+.workspace div { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.workspace b, .workspace small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.workspace b { color: white; font-size: var(--font-base); transition: color .18s ease; }
 .workspace small { color: #86a7b9; font-size: var(--font-md); }
-.workspace strong { font-size: var(--font-md); }
 
 @media (max-width: 1250px) { .sidebar { width: 205px; } }
 @media (max-width: 900px) {
   .sidebar { width: var(--sidebar-collapsed-width); padding-inline: 10px; }
-  .nav > small, .workspace div, .workspace strong { display: none; }
+  .nav > small, .workspace div { display: none; }
   .button { justify-content: center; padding: 0; font-size: 0; }
   .button svg { width: 21px; height: 21px; }
   .indicator { right: -10px; }
