@@ -10,6 +10,7 @@ import {
 } from "../../domain/auth/permissions";
 import { useAuth } from "../auth/AuthContext";
 import { employeeNavigation } from "../config/employeeNavigation";
+import { useUnreadNotificationCount } from "../hooks/useUnreadNotificationCount";
 import { Brand } from "./Brand";
 import styles from "./Sidebar.module.css";
 
@@ -18,6 +19,9 @@ export function Sidebar({ session: providedSession }) {
   const location = useLocation();
   const { session: authenticatedSession, logout } = useAuth();
   const session = providedSession ?? authenticatedSession;
+  const unreadNotificationCount = useUnreadNotificationCount(
+    session?.user?.companyId,
+  );
   if (!session) return null;
   const visibleItems = employeeNavigation.filter((item) =>
     hasPermission(session.permissions, item.permission),
@@ -42,6 +46,7 @@ export function Sidebar({ session: providedSession }) {
 
         {visibleItems.map(({ icon: Icon, label, path }) => {
           const active = location.pathname === path;
+          const badge = path === "/notifications" ? unreadNotificationCount : 0;
 
           return (
             <button
@@ -52,7 +57,12 @@ export function Sidebar({ session: providedSession }) {
               title={path ? label : `${label} sayfası yakında`}
             >
               <Icon />
-              {label}
+              <span className={styles.buttonLabel}>{label}</span>
+              {badge > 0 ? (
+                <b className={styles.notificationBadge} aria-label={`${badge} okunmamış bildirim`}>
+                  {badge > 99 ? "99+" : badge}
+                </b>
+              ) : null}
               {active && <i className={styles.indicator} />}
             </button>
           );

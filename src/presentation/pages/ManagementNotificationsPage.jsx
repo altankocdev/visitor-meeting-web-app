@@ -17,6 +17,7 @@ import { notificationRepository } from "../../infrastructure/repositories/notifi
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import styles from "./ManagementNotificationsPage.module.css";
+import { NOTIFICATIONS_UPDATED_EVENT } from "../hooks/useUnreadNotificationCount";
 
 const categoryMeta = {
   RESERVATION: { label: "Rezervasyon", icon: EventOutlined, tone: "blue" },
@@ -165,6 +166,7 @@ export function ManagementNotificationsPage({ session = managementSession }) {
 
     try {
       await notificationRepository.markAsRead(companyId, item.id);
+      window.dispatchEvent(new Event(NOTIFICATIONS_UPDATED_EVENT));
     } catch {
       setItems((current) =>
         current.map((entry) =>
@@ -184,6 +186,7 @@ export function ManagementNotificationsPage({ session = managementSession }) {
         .filter((item) => !String(item.id).startsWith("demo-"))
         .map((item) => notificationRepository.markAsRead(companyId, item.id)),
     );
+    window.dispatchEvent(new Event(NOTIFICATIONS_UPDATED_EVENT));
   };
 
   const summary = {
