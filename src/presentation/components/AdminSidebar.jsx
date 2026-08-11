@@ -15,6 +15,17 @@ export function AdminSidebar() {
   const { logout, session } = useAuth();
   if (!session) return null;
 
+  const displayName =
+    [session.user.firstName, session.user.lastName].filter(Boolean).join(" ") ||
+    session.user.username ||
+    session.user.email;
+  const identityDetails = [
+    session.user.roleLabel,
+    session.user.companyName,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <aside className={styles.sidebar}>
       <Brand />
@@ -81,11 +92,11 @@ export function AdminSidebar() {
         </button>
         <div className={styles.identity}>
           <span className={styles.avatar}>
-            {session?.user.initials || "YB"}
+            {session.user.initials || "ME"}
           </span>
           <div>
-            <b>{session?.user.companyName || "Yaşar Bilgi"}</b>
-            <small>{session?.user.roleLabel || "Süper admin"}</small>
+            <b title={displayName}>{displayName}</b>
+            <small title={identityDetails}>{identityDetails}</small>
           </div>
         </div>
       </div>
