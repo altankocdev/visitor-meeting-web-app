@@ -8,11 +8,15 @@ import { superAdminNavigation } from "../config/superAdminNavigation";
 import { Brand } from "./Brand";
 import styles from "./AdminSidebar.module.css";
 import { useAuth } from "../auth/AuthContext";
+import { useUnreadNotificationCount } from "../hooks/useUnreadNotificationCount";
 
 export function AdminSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, session } = useAuth();
+  const unreadNotificationCount = useUnreadNotificationCount(
+    session?.user?.companyId,
+  );
   if (!session) return null;
 
   const displayName =
@@ -54,6 +58,10 @@ export function AdminSidebar() {
                 ? "/management/dashboard"
                 : path;
             const active = location.pathname === resolvedPath;
+            const itemBadge =
+              path === "/management/notifications"
+                ? unreadNotificationCount
+                : badge;
             return (
               <button
                 className={`${styles.button} ${active ? styles.active : ""}`}
@@ -64,7 +72,11 @@ export function AdminSidebar() {
               >
                 <Icon />
                 <span>{label}</span>
-                {badge ? <b className={styles.badge}>{badge}</b> : null}
+                {itemBadge ? (
+                  <b className={styles.badge} aria-label={`${itemBadge} okunmamış bildirim`}>
+                    {itemBadge > 99 ? "99+" : itemBadge}
+                  </b>
+                ) : null}
                 {active ? <i className={styles.indicator} /> : null}
               </button>
             );

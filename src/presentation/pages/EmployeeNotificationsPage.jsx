@@ -16,6 +16,7 @@ import { notificationRepository } from "../../infrastructure/repositories/notifi
 import { useAuth } from "../auth/AuthContext";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
+import { NOTIFICATIONS_UPDATED_EVENT } from "../hooks/useUnreadNotificationCount";
 import styles from "./EmployeeNotificationsPage.module.css";
 
 const categoryMeta = {
@@ -110,6 +111,7 @@ export function EmployeeNotificationsPage() {
 
     try {
       await notificationRepository.markAsRead(companyId, item.id);
+      window.dispatchEvent(new Event(NOTIFICATIONS_UPDATED_EVENT));
     } catch {
       setItems((current) =>
         current.map((entry) =>
@@ -126,6 +128,7 @@ export function EmployeeNotificationsPage() {
     await Promise.allSettled(
       unreadItems.map((item) => notificationRepository.markAsRead(companyId, item.id)),
     );
+    window.dispatchEvent(new Event(NOTIFICATIONS_UPDATED_EVENT));
   };
 
   return (
