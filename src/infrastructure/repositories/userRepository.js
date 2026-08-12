@@ -27,6 +27,23 @@ export const userRepository = {
     });
     return unwrapApiResponse(response);
   },
+  async update(companyId, userId, data) {
+    const response = await apiClient.put(`${usersPath(companyId)}/${userId}`, data);
+    return unwrapApiResponse(response);
+  },
+  async downloadImportTemplate(companyId) {
+    const response = await apiClient.get(`${usersPath(companyId)}/import-template`, {
+      responseType: "blob",
+    });
+    const url = URL.createObjectURL(response.data);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "toplu-kullanici-sablonu.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+  },
   activate: (companyId, userId) => apiClient.patch(`${usersPath(companyId)}/${userId}/activate`),
   deactivate: (companyId, userId) => apiClient.patch(`${usersPath(companyId)}/${userId}/deactivate`),
   deleteUser: (companyId, userId) => apiClient.delete(`${usersPath(companyId)}/${userId}`),

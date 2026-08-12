@@ -7,9 +7,10 @@ import { reportRepository } from "../../infrastructure/repositories/reportReposi
 import { useAuth } from "../auth/AuthContext";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
+import { AppNotice } from "../components/AppNotice";
 import styles from "./ReportsPage.module.css";
 
-const getRange = (days) => ({
+const getRange = (days) => days === "all" ? { from: null, to: null } : ({
   from: dayjs().subtract(Number(days) - 1, "day").format("YYYY-MM-DD"),
   to: dayjs().format("YYYY-MM-DD"),
 });
@@ -72,16 +73,19 @@ export function ReportsPage() {
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = filename;
+      anchor.style.display = "none";
+      document.body.appendChild(anchor);
       anchor.click();
-      URL.revokeObjectURL(url);
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (exportError) {
       setError(getApiErrorMessage(exportError, "Excel raporu indirilemedi."));
     } finally { setExporting(false); }
   };
 
   return <div className={styles.shell}><AdminSidebar /><div className={styles.main}><AdminTopbar /><main className={styles.content}>
-    <header className={styles.pageHead}><div><small>ANALİZ VE RAPORLAMA</small><h1>Raporlar</h1><p>Rezervasyon performansını ve toplantı odası kullanımını analiz edin.</p></div><div className={styles.headActions}><select value={range} onChange={(event) => setRange(event.target.value)}><option value="7">Son 7 gün</option><option value="30">Son 30 gün</option><option value="90">Son 3 ay</option></select>{canExport && canRooms && <button type="button" disabled={exporting} onClick={exportRoomUsage}><DownloadRounded />{exporting ? "Hazırlanıyor..." : "Oda raporunu indir"}</button>}</div></header>
-    {error && <p className={styles.error} role="alert">{error}</p>}
+    <header className={styles.pageHead}><div><small>ANALİZ VE RAPORLAMA</small><h1>Raporlar</h1><p>Rezervasyon performansını ve toplantı odası kullanımını analiz edin.</p></div><div className={styles.headActions}><select value={range} onChange={(event) => setRange(event.target.value)}><option value="7">Son 7 gün</option><option value="30">Son 30 gün</option><option value="90">Son 3 ay</option><option value="all">Tüm zamanlar</option></select>{canExport && canRooms && <button type="button" disabled={exporting} onClick={exportRoomUsage}><DownloadRounded />{exporting ? "Hazırlanıyor..." : "Oda raporunu indir"}</button>}</div></header>
+    <AppNotice notice={error} onClose={() => setError("")} />
     <section className={styles.stats}><article><span className={styles.blue}><EventOutlined /></span><div><small>Toplam rezervasyon</small><strong>{loading ? "—" : reportSummary.reservations}</strong><p>Seçili tarih aralığı</p></div></article><article><span className={styles.green}><CheckCircleOutlineRounded /></span><div><small>Başarı oranı</small><strong>{loading ? "—" : `%${reportSummary.approvalRate}`}</strong><p>{reportSummary.successful} aktif / tamamlanan</p></div></article><article><span className={styles.orange}><MeetingRoomOutlined /></span><div><small>Rezerve oda süresi</small><strong>{loading ? "—" : `${reportSummary.totalHours} sa`}</strong><p>Aktif ve tamamlanan toplantılar</p></div></article><article><span className={styles.gray}><CancelOutlined /></span><div><small>İptal edilen</small><strong>{loading ? "—" : reportSummary.cancellations}</strong><p>Seçili tarih aralığı</p></div></article></section>
     <section className={styles.grid}>
       <article className={styles.chartPanel}><header><div><h2>Kullanıcı rezervasyon dağılımı</h2><p>En çok rezervasyon oluşturan kullanıcılar ve talep sonuçları.</p></div><div className={styles.legend}><span><i className={styles.approvedDot} />Başarılı</span><span><i className={styles.pendingDot} />Bekleyen</span><span><i className={styles.cancelledDot} />Başarısız</span></div></header>{chartData.length ? <div className={styles.chart}><div className={styles.chartScale}><span>0</span><span>{Math.ceil(max / 2)}</span><span>{max} rezervasyon</span></div>{chartData.map((row) => { const initials = row.userName?.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toLocaleUpperCase("tr-TR") || "?"; return <div className={styles.chartRow} key={row.userId}><div className={styles.chartIdentity}><span>{initials}</span><div><b title={row.userName}>{row.userName}</b><small>{row.totalCount} toplam talep</small></div></div><div className={styles.barTrack} style={{ width: `${Math.max(12, row.totalCount / max * 100)}%` }} aria-label={`${row.userName}: ${row.totalCount} rezervasyon`}><i className={styles.approvedBar} style={{ flex: row.successfulCount }} title={`${row.successfulCount} başarılı`} /><i className={styles.pendingBar} style={{ flex: row.pending }} title={`${row.pending} bekleyen`} /><i className={styles.cancelledBar} style={{ flex: row.unsuccessfulCount }} title={`${row.unsuccessfulCount} başarısız`} /></div><strong>{row.totalCount}</strong></div>; })}</div> : <p className={styles.empty}>Bu dönem için rezervasyon verisi bulunmuyor.</p>}</article>

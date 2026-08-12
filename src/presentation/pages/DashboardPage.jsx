@@ -102,8 +102,16 @@ export function DashboardPage() {
   );
 
   const calendarReservations = useMemo(
-    () => ownReservations.map((item) => ({ ...item, isOwn: true, canViewDetails: true })),
-    [ownReservations],
+    () => reservations.map((item) => {
+      const isOwn = checkIsOwn(item);
+      return {
+        ...item,
+        isOwn,
+        canViewDetails: isOwn || canViewReservationDetails,
+        status: isOwn ? item.status : "BUSY",
+      };
+    }),
+    [reservations, checkIsOwn, canViewReservationDetails],
   );
 
   const canCreateReservation = hasPermission(
@@ -173,7 +181,10 @@ export function DashboardPage() {
           <StatCards reservations={ownReservations} rooms={rooms} referenceDate={referenceDate} />
 
           <div className={styles.grid}>
-            <BookingCalendar reservations={calendarReservations} />
+            <BookingCalendar
+              reservations={calendarReservations}
+              description="Kendi rezervasyonlarınızı ve departmanınızdaki toplantıları saat bazında görüntüleyin."
+            />
             <UpcomingMeetings items={upcomingReservations} onSelect={setSelectedMeeting} onViewAll={() => navigate("/reservations")} />
           </div>
         </main>
@@ -188,7 +199,7 @@ export function DashboardPage() {
         />
       )}
       <MeetingDetailsPanel open={Boolean(selectedMeeting)} meetings={selectedMeeting ? [selectedMeeting] : []} onClose={() => setSelectedMeeting(null)} />
-      <Snackbar open={Boolean(notice)} autoHideDuration={5000} onClose={() => setNotice(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+      <Snackbar open={Boolean(notice)} autoHideDuration={5000} onClose={() => setNotice(null)} anchorOrigin={{ vertical: "top", horizontal: "right" }} sx={{ mt: 2 }}>
         <Alert severity={notice?.severity ?? "info"} variant="filled" onClose={() => setNotice(null)}>
           {notice?.text}
         </Alert>

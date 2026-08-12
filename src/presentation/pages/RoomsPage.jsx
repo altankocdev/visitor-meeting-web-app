@@ -204,7 +204,7 @@ export function RoomsPage() {
         rooms={rooms}
         onCreate={createReservation}
       />
-      <Snackbar open={Boolean(notice)} autoHideDuration={5000} onClose={() => setNotice(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+      <Snackbar open={Boolean(notice)} autoHideDuration={5000} onClose={() => setNotice(null)} anchorOrigin={{ vertical: "top", horizontal: "right" }} sx={{ mt: 2 }}>
         <Alert severity={notice?.severity ?? "info"} variant="filled" onClose={() => setNotice(null)}>
           {notice?.text}
         </Alert>

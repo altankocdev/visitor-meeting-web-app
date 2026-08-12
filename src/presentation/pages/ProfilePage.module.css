@@ -7,6 +7,7 @@
 .pageHead p { margin: 0; color: #7a8c95; font-size: var(--font-base); }
 .saved { display: flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 10px; color: #146f60; background: #e5f6f1; font-size: var(--font-sm); font-weight: 700; }
 .saved svg { width: 16px; }
+.saveError { max-width: 420px; padding: 9px 12px; border: 1px solid #f1c6ca; border-radius: 10px; color: #a53e49; background: #fff1f2; font-size: var(--font-sm); font-weight: 700; }
 .layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 20px; align-items: start; }
 
 .summary, .formPanel { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: white; box-shadow: var(--shadow-panel); }

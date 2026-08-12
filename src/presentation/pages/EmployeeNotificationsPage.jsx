@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getApiErrorMessage } from "../../infrastructure/api/apiError";
 import { notificationRepository } from "../../infrastructure/repositories/notificationRepository";
 import { useAuth } from "../auth/AuthContext";
+import { AppNotice } from "../components/AppNotice";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 import { NOTIFICATIONS_UPDATED_EVENT } from "../hooks/useUnreadNotificationCount";
@@ -204,7 +205,7 @@ export function EmployeeNotificationsPage() {
             </div>
 
             {loading ? <div className={styles.empty}>Bildirimler yükleniyor.</div> : null}
-            {!loading && error ? <div className={styles.empty}>{error}</div> : null}
+            <AppNotice notice={!loading ? error : ""} onClose={() => setError("")} />
             {!loading && !error && visibleItems.length === 0 ? (
               <div className={styles.empty}>Gösterilecek bildirim bulunmuyor.</div>
             ) : null}

@@ -1,6 +1,5 @@
 import {
   DashboardRounded,
-  HelpOutlineRounded,
   LogoutRounded,
 } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -84,10 +83,6 @@ export function AdminSidebar() {
         )}
       </nav>
       <div className={styles.bottom}>
-        <button className={styles.button} type="button">
-          <HelpOutlineRounded />
-          <span>Yardım merkezi</span>
-        </button>
         <button
           className={styles.button}
           type="button"

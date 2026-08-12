@@ -128,6 +128,6 @@ export function AdminReservationsPage() {
   <AdminReservationDetailsDialog reservation={detailsTarget} onClose={() => setDetailsTarget(null)} onApprove={canApprove ? () => openDecision("approve") : undefined} onReject={canReject ? () => openDecision("reject") : undefined} onCancel={canCancel ? () => openDecision("cancel") : undefined} />
   <ReservationDecisionDialog reservation={decision?.reservation} action={decision?.action} onClose={() => setDecision(null)} onConfirm={confirmDecision} />
   <BookingDialog open={dialogOpen} onClose={() => setDialogOpen(false)} rooms={managedRooms} onCreate={createReservation} />
-  <Snackbar open={Boolean(notice)} autoHideDuration={5000} onClose={() => setNotice(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}><Alert severity={notice?.severity ?? "info"} variant="filled" onClose={() => setNotice(null)}>{notice?.text}</Alert></Snackbar>
+  <Snackbar open={Boolean(notice)} autoHideDuration={5000} onClose={() => setNotice(null)} anchorOrigin={{ vertical: "top", horizontal: "right" }} sx={{ mt: 2 }}><Alert severity={notice?.severity ?? "info"} variant="filled" onClose={() => setNotice(null)}>{notice?.text}</Alert></Snackbar>
   </div>;
 }

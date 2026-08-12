@@ -1,4 +1,4 @@
-import { AddRounded, CheckCircleOutlineRounded, DeleteOutlineRounded, EditOutlined, GroupsOutlined, MoreHorizRounded, PersonOffOutlined, SearchRounded, ShieldOutlined, UploadFileOutlined } from "@mui/icons-material";
+import { AddRounded, CheckCircleOutlineRounded, GroupsOutlined, PersonOffOutlined, SearchRounded, ShieldOutlined, UploadFileOutlined } from "@mui/icons-material";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { hasPermission, permissions } from "../../domain/auth/permissions";
@@ -7,6 +7,8 @@ import { organizationRepository } from "../../infrastructure/repositories/organi
 import { userRepository } from "../../infrastructure/repositories/userRepository";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
+import { DeleteAction, DetailsAction, EditAction, ManagementActions, StatusAction } from "../components/ManagementActions";
+import { AppNotice } from "../components/AppNotice";
 import { UserFormDialog } from "../components/UserFormDialog";
 import { UserImportDialog } from "../components/UserImportDialog";
 import { EditUserDialog, UserDeleteDialog, UserDetailsDialog, UserStatusDialog } from "../components/UserManagementDialogs";
@@ -16,6 +18,9 @@ import { useAuth } from "../auth/AuthContext";
 function mapUser(user) {
   return {
     ...user,
+    departmentId: user.department?.id ?? null,
+    jobTitleId: user.jobTitle?.id ?? null,
+    roleIds: user.roles?.map((role) => role.id) ?? [],
     department: user.department?.name ?? "Belirtilmedi",
     jobTitle: user.jobTitle?.name ?? "Belirtilmedi",
     roles: user.roles?.map((role) => role.name) ?? [],
@@ -120,11 +125,38 @@ export function UsersPage() {
     }
   };
 
-  const updateUser = (data) => {
-    setUsers((current) => current.map((user) => user.id === editTarget.id
-      ? { ...user, ...data, roles: Array.isArray(data.roles) ? data.roles : [data.roles] }
-      : user));
-    setEditTarget(null);
+  const downloadImportTemplate = async () => {
+    try {
+      await userRepository.downloadImportTemplate(companyId);
+      setApiError("");
+    } catch (error) {
+      setApiError(getApiErrorMessage(error, "Excel şablonu indirilemedi."));
+    }
+  };
+
+  const updateUser = async (data) => {
+    if (!editTarget) return false;
+    try {
+      const updated = await userRepository.update(companyId, editTarget.id, {
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        email: data.email.trim(),
+        departmentId: data.departmentId ? Number(data.departmentId) : null,
+        jobTitleId: data.jobTitleId ? Number(data.jobTitleId) : null,
+        roleIds: (data.roleIds ?? []).map(Number),
+      });
+      const mapped = mapUser(updated);
+      setUsers((current) => current.map((user) => user.id === mapped.id ? mapped : user));
+      setDetailsTarget((current) => current?.id === mapped.id ? mapped : current);
+      setEditTarget(null);
+      setApiError("");
+      setSuccessMessage("Kullanıcı bilgileri başarıyla güncellendi.");
+      return true;
+    } catch (error) {
+      setSuccessMessage("");
+      setApiError(getApiErrorMessage(error, "Kullanıcı bilgileri güncellenemedi."));
+      return false;
+    }
   };
 
   const toggleUserStatus = async () => {
@@ -180,7 +212,7 @@ export function UsersPage() {
             <div><small>ŞİRKET YÖNETİMİ</small><h1>Kullanıcılar</h1><p>Çalışanları görüntüleyin; departman, unvan ve rol bilgilerini yönetin.</p></div>
             {canCreate && <div className={styles.headActions}><button className={styles.importButton} type="button" onClick={() => setImportDialogOpen(true)}><UploadFileOutlined /> Excel ile aktar</button><button className={styles.createButton} type="button" onClick={() => setDialogOpen(true)}><AddRounded /> Yeni kullanıcı</button></div>}
           </header>
-          {apiError && <p role="alert">{apiError}</p>}
+          <AppNotice notice={apiError} onClose={() => setApiError("")} />
           {successMessage && <p className={styles.success} role="status">{successMessage}</p>}
 
           <section className={styles.stats}>
@@ -208,7 +240,7 @@ export function UsersPage() {
                     <td><b>{user.department}</b><small>{user.jobTitle}</small></td>
                     <td><div className={styles.roles}>{user.roles.map((role) => <span key={role}>{role}</span>)}</div></td>
                     <td><span className={`${styles.status} ${user.active ? styles.active : styles.passive}`}><i />{user.active ? (user.mustChangePassword ? "İlk giriş bekleniyor" : "Aktif") : "Pasif"}</span></td>
-                    <td><div className={styles.actions}>{canUpdate && <button type="button" title="Kullanıcıyı düzenle" onClick={() => setEditTarget(user)}><EditOutlined /></button>}{((user.active && canDeactivate) || (!user.active && canActivate)) && <button type="button" title={user.active ? "Kullanıcıyı pasifleştir" : "Kullanıcıyı aktifleştir"} onClick={() => setStatusTarget(user)}><PersonOffOutlined /></button>}{canDelete && !user.owner && user.id !== session.user.id && <button type="button" title="Kullanıcıyı kalıcı olarak sil" onClick={() => setDeleteTarget(user)}><DeleteOutlineRounded /></button>}<button type="button" title="Kullanıcı detayları" onClick={() => setDetailsTarget(user)}><MoreHorizRounded /></button></div></td>
+                    <td><ManagementActions>{canUpdate && <EditAction label="Kullanıcıyı düzenle" onClick={() => setEditTarget(user)} />}{((user.active && canDeactivate) || (!user.active && canActivate)) && <StatusAction active={user.active} label={user.active ? "Kullanıcıyı pasifleştir" : "Kullanıcıyı aktifleştir"} onClick={() => setStatusTarget(user)} />}{canDelete && !user.owner && user.id !== session.user.id && <DeleteAction label="Kullanıcıyı kalıcı olarak sil" onClick={() => setDeleteTarget(user)} />}<DetailsAction label="Kullanıcı detayları" onClick={() => setDetailsTarget(user)} /></ManagementActions></td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -217,7 +249,7 @@ export function UsersPage() {
         </main>
       </div>
       {canCreate && <UserFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onCreate={createUser} departments={departments} jobTitles={jobTitles} companyRoles={companyRoles} />}
-      {canCreate && <UserImportDialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} onImport={importUsers} />}
+      {canCreate && <UserImportDialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} onImport={importUsers} onDownloadTemplate={downloadImportTemplate} />}
       <EditUserDialog user={editTarget} onClose={() => setEditTarget(null)} onSave={updateUser} departments={departments} jobTitles={jobTitles} companyRoles={companyRoles} />
       <UserStatusDialog user={statusTarget} onClose={() => setStatusTarget(null)} onConfirm={toggleUserStatus} />
       <UserDeleteDialog user={deleteTarget} deleting={deleting} onClose={() => setDeleteTarget(null)} onConfirm={deleteUser} />

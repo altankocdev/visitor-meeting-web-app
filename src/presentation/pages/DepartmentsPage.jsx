@@ -1,4 +1,4 @@
-import { AddRounded, ApartmentRounded, CheckCircleOutlineRounded, EditOutlined, GroupsOutlined, MoreHorizRounded, SearchRounded, ToggleOffOutlined } from "@mui/icons-material";
+import { AddRounded, ApartmentRounded, CheckCircleOutlineRounded, GroupsOutlined, SearchRounded } from "@mui/icons-material";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getApiErrorMessage } from "../../infrastructure/api/apiError";
@@ -6,7 +6,9 @@ import { organizationRepository } from "../../infrastructure/repositories/organi
 import { useAuth } from "../auth/AuthContext";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
-import { DepartmentDetailsDialog, DepartmentFormDialog, DepartmentStatusDialog } from "../components/DepartmentDialogs";
+import { DeleteAction, DetailsAction, EditAction, ManagementActions } from "../components/ManagementActions";
+import { AppNotice } from "../components/AppNotice";
+import { DepartmentDetailsDialog, DepartmentFormDialog } from "../components/DepartmentDialogs";
 import styles from "./DepartmentsPage.module.css";
 
 export function DepartmentsPage() {
@@ -16,10 +18,9 @@ export function DepartmentsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [apiError, setApiError] = useState("");
-  const [filters, setFilters] = useState({ search: "", status: "" });
+  const [filters, setFilters] = useState({ search: "" });
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
-  const [statusTarget, setStatusTarget] = useState(null);
   const [detailsTarget, setDetailsTarget] = useState(null);
   const companyId = session.user.companyId;
 
@@ -29,7 +30,7 @@ export function DepartmentsPage() {
     organizationRepository.departments(companyId, { size: 200 })
       .then((page) => {
         if (!mounted) return;
-        setDepartments(page.content ?? []);
+        setDepartments((page.content ?? []).filter((item) => item.active));
         setApiError("");
       })
       .catch((error) => {
@@ -43,8 +44,7 @@ export function DepartmentsPage() {
 
   const filtered = useMemo(() => departments.filter((department) => {
     const search = filters.search.trim().toLocaleLowerCase("tr-TR");
-    return (!search || `${department.name} ${department.description}`.toLocaleLowerCase("tr-TR").includes(search))
-      && (!filters.status || String(department.active) === filters.status);
+    return !search || `${department.name} ${department.description}`.toLocaleLowerCase("tr-TR").includes(search);
   }), [departments, filters]);
 
   const saveDepartment = async (data) => {
@@ -66,9 +66,14 @@ export function DepartmentsPage() {
     }
   };
 
-  const toggleStatus = () => {
-    setDepartments((current) => current.map((item) => item.id === statusTarget.id ? { ...item, active: !item.active } : item));
-    setStatusTarget(null);
+  const archiveDepartment = async (department) => {
+    if (!window.confirm(`${department.name} departmanını silmek istediğinize emin misiniz? Geçmiş kayıtlar korunacaktır.`)) return;
+    try {
+      await organizationRepository.archiveDepartment(companyId, department.id);
+      setDepartments((current) => current.filter((item) => item.id !== department.id));
+    } catch (error) {
+      setApiError(getApiErrorMessage(error, "Departman silinemedi."));
+    }
   };
 
   return (
@@ -77,7 +82,7 @@ export function DepartmentsPage() {
       <div className={styles.main}>
         <AdminTopbar />
         <main className={styles.content}>
-          {apiError ? <p role="alert">{apiError}</p> : null}
+          <AppNotice notice={apiError} onClose={() => setApiError("")} />
           <header className={styles.pageHead}>
             <div><small>ORGANİZASYON YÖNETİMİ</small><h1>Departmanlar</h1><p>Şirket organizasyonunu oluşturun ve çalışanların bağlı olduğu birimleri yönetin.</p></div>
             <button className={styles.createButton} type="button" onClick={() => setFormOpen(true)}><AddRounded /> Yeni departman</button>
@@ -87,14 +92,12 @@ export function DepartmentsPage() {
             <article><span className={styles.blue}><ApartmentRounded /></span><div><small>Toplam departman</small><strong>{departments.length}</strong><p>Şirket organizasyonu</p></div></article>
             <article><span className={styles.green}><CheckCircleOutlineRounded /></span><div><small>Aktif departman</small><strong>{departments.filter((item) => item.active).length}</strong><p>Kullanıma açık birim</p></div></article>
             <article><span className={styles.orange}><GroupsOutlined /></span><div><small>Bağlı çalışan</small><strong>{departments.reduce((total, item) => total + item.userCount, 0)}</strong><p>Departmanı tanımlı kullanıcı</p></div></article>
-            <article><span className={styles.gray}><ToggleOffOutlined /></span><div><small>Pasif departman</small><strong>{departments.filter((item) => !item.active).length}</strong><p>Yeni atamaya kapalı</p></div></article>
           </section>
 
           <section className={styles.panel}>
             <header className={styles.panelHead}><div><h2>Departman listesi</h2><p>{loading ? "Departmanlar yükleniyor..." : `${filtered.length} departman gösteriliyor`}</p></div></header>
             <div className={styles.filters}>
               <label className={styles.search}><SearchRounded /><input value={filters.search} placeholder="Departman adı veya açıklama ara..." onChange={(event) => setFilters((value) => ({ ...value, search: event.target.value }))} /></label>
-              <select value={filters.status} onChange={(event) => setFilters((value) => ({ ...value, status: event.target.value }))}><option value="">Tüm durumlar</option><option value="true">Aktif</option><option value="false">Pasif</option></select>
             </div>
             <div className={styles.tableWrap}>
               <table>
@@ -105,7 +108,7 @@ export function DepartmentsPage() {
                     <td><b>{department.manager || "Atanmadı"}</b><small>Departman yöneticisi</small></td>
                     <td><span className={styles.userCount}><GroupsOutlined />{department.userCount} kullanıcı</span></td>
                     <td><span className={`${styles.status} ${department.active ? styles.active : styles.passive}`}><i />{department.active ? "Aktif" : "Pasif"}</span></td>
-                    <td><div className={styles.actions}><button type="button" title="Departmanı düzenle" onClick={() => setEditTarget(department)}><EditOutlined /></button><button type="button" title={department.active ? "Departmanı pasifleştir" : "Departmanı aktifleştir"} onClick={() => setStatusTarget(department)}><ToggleOffOutlined /></button><button type="button" title="Departman detayları" onClick={() => setDetailsTarget(department)}><MoreHorizRounded /></button></div></td>
+                    <td><ManagementActions><EditAction label="Departmanı düzenle" onClick={() => setEditTarget(department)} /><DeleteAction label="Departmanı sil" onClick={() => archiveDepartment(department)} /><DetailsAction label="Departman detayları" onClick={() => setDetailsTarget(department)} /></ManagementActions></td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -115,7 +118,6 @@ export function DepartmentsPage() {
       </div>
 
       <DepartmentFormDialog open={formOpen || Boolean(editTarget)} department={editTarget} onClose={() => { if (!saving) { setFormOpen(false); setEditTarget(null); } }} onSave={saveDepartment} />
-      <DepartmentStatusDialog department={statusTarget} onClose={() => setStatusTarget(null)} onConfirm={toggleStatus} />
       <DepartmentDetailsDialog
         department={detailsTarget}
         onClose={() => setDetailsTarget(null)}

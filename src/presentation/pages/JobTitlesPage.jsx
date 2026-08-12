@@ -1,11 +1,13 @@
-import { AddRounded, BadgeOutlined, CheckCircleOutlineRounded, EditOutlined, GroupsOutlined, MoreHorizRounded, SearchRounded, ToggleOffOutlined, VerifiedUserOutlined } from "@mui/icons-material";
+import { AddRounded, BadgeOutlined, CheckCircleOutlineRounded, GroupsOutlined, SearchRounded, VerifiedUserOutlined } from "@mui/icons-material";
 import { useEffect, useMemo, useState } from "react";
 import { getApiErrorMessage } from "../../infrastructure/api/apiError";
 import { organizationRepository } from "../../infrastructure/repositories/organizationRepository";
 import { useAuth } from "../auth/AuthContext";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
-import { JobTitleDetailsDialog, JobTitleFormDialog, JobTitleStatusDialog } from "../components/JobTitleDialogs";
+import { DeleteAction, DetailsAction, EditAction, ManagementActions } from "../components/ManagementActions";
+import { AppNotice } from "../components/AppNotice";
+import { JobTitleDetailsDialog, JobTitleFormDialog } from "../components/JobTitleDialogs";
 import styles from "./JobTitlesPage.module.css";
 
 function mapJobTitle(item) {
@@ -34,7 +36,6 @@ export function JobTitlesPage() {
   const [filters, setFilters] = useState({ search: "", status: "", roleId: "" });
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
-  const [statusTarget, setStatusTarget] = useState(null);
   const [detailsTarget, setDetailsTarget] = useState(null);
   const companyId = session.user.companyId;
 
@@ -51,8 +52,8 @@ export function JobTitlesPage() {
       organizationRepository.roles(companyId, { size: 200 }),
     ]).then(([jobTitlePage, rolePage]) => {
       if (!mounted) return;
-      setJobTitles((jobTitlePage.content ?? []).map(mapJobTitle));
-      setRoles((rolePage.content ?? []).map(mapRole));
+      setJobTitles((jobTitlePage.content ?? []).filter((item) => item.active).map(mapJobTitle));
+      setRoles((rolePage.content ?? []).filter((item) => item.active).map(mapRole));
       setApiError("");
     }).catch((error) => {
       if (mounted) setApiError(getApiErrorMessage(error, "Unvanlar yüklenemedi."));
@@ -89,13 +90,18 @@ export function JobTitlesPage() {
     }
   };
 
-  const toggleStatus = () => {
-    setJobTitles((current) => current.map((item) => item.id === statusTarget.id ? { ...item, active: !item.active } : item));
-    setStatusTarget(null);
+  const archiveJobTitle = async (jobTitle) => {
+    if (!window.confirm(`${jobTitle.name} unvanını silmek istediğinize emin misiniz? Geçmiş kullanıcı kayıtları korunacaktır.`)) return;
+    try {
+      await organizationRepository.archiveJobTitle(jobTitle.id);
+      setJobTitles((current) => current.filter((item) => item.id !== jobTitle.id));
+    } catch (error) {
+      setApiError(getApiErrorMessage(error, "Unvan silinemedi."));
+    }
   };
 
   return <div className={styles.shell}><AdminSidebar session={session} /><div className={styles.main}><AdminTopbar /><main className={styles.content}>
-    {apiError ? <p role="alert">{apiError}</p> : null}
+    <AppNotice notice={apiError} onClose={() => setApiError("")} />
     <header className={styles.pageHead}><div><small>ORGANİZASYON YÖNETİMİ</small><h1>Unvanlar</h1><p>Şirket unvanlarını ve unvanla birlikte önerilecek varsayılan rolleri yönetin.</p></div><button className={styles.createButton} type="button" onClick={() => setFormOpen(true)}><AddRounded />Yeni unvan</button></header>
     <section className={styles.stats}>
       <article><span className={styles.blue}><BadgeOutlined /></span><div><small>Toplam unvan</small><strong>{jobTitles.length}</strong><p>Şirket unvan kataloğu</p></div></article>
@@ -104,15 +110,14 @@ export function JobTitlesPage() {
       <article><span className={styles.gray}><VerifiedUserOutlined /></span><div><small>Rol bağlı unvan</small><strong>{jobTitles.filter((item) => item.defaultRoleIds.length).length}</strong><p>Varsayılan erişim tanımlı</p></div></article>
     </section>
     <section className={styles.panel}><header className={styles.panelHead}><div><h2>Unvan listesi</h2><p>{loading ? "Unvanlar yükleniyor..." : `${filtered.length} unvan gösteriliyor`}</p></div></header>
-      <div className={styles.filters}><label><SearchRounded /><input value={filters.search} placeholder="Unvan adı veya açıklama ara..." onChange={(event) => setFilters((value) => ({ ...value, search: event.target.value }))} /></label><select value={filters.roleId} onChange={(event) => setFilters((value) => ({ ...value, roleId: event.target.value }))}><option value="">Tüm varsayılan roller</option>{roles.filter((role) => role.name !== "Süper Admin").map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}</select><select value={filters.status} onChange={(event) => setFilters((value) => ({ ...value, status: event.target.value }))}><option value="">Tüm durumlar</option><option value="true">Aktif</option><option value="false">Pasif</option></select></div>
+      <div className={styles.filters}><label><SearchRounded /><input value={filters.search} placeholder="Unvan adı veya açıklama ara..." onChange={(event) => setFilters((value) => ({ ...value, search: event.target.value }))} /></label><select value={filters.roleId} onChange={(event) => setFilters((value) => ({ ...value, roleId: event.target.value }))}><option value="">Tüm varsayılan roller</option>{roles.filter((role) => role.name !== "Süper Admin").map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}</select></div>
       <div className={styles.tableWrap}><table><thead><tr><th>UNVAN</th><th>VARSAYILAN ROL</th><th>KULLANICI</th><th>DURUM</th><th>İŞLEMLER</th></tr></thead><tbody>{filtered.map((item) => {
         const assignedRoles = roles.filter((role) => item.defaultRoleIds.includes(role.id));
-        return <tr key={item.id}><td><div className={styles.title}><span><BadgeOutlined /></span><div><b>{item.name}</b><small>{item.description}</small></div></div></td><td><div className={styles.roles}>{assignedRoles.length ? assignedRoles.map((role) => <span key={role.id}>{role.name}</span>) : <small>Rol atanmamış</small>}</div></td><td><span className={styles.users}><GroupsOutlined />{item.userCount} kullanıcı</span></td><td><span className={`${styles.status} ${item.active ? styles.active : styles.passive}`}><i />{item.active ? "Aktif" : "Pasif"}</span></td><td><div className={styles.actions}><button type="button" title="Unvanı düzenle" onClick={() => setEditTarget(item)}><EditOutlined /></button><button type="button" title={item.active ? "Unvanı pasifleştir" : "Unvanı aktifleştir"} onClick={() => setStatusTarget(item)}><ToggleOffOutlined /></button><button type="button" title="Unvan detayları" onClick={() => setDetailsTarget(item)}><MoreHorizRounded /></button></div></td></tr>;
+        return <tr key={item.id}><td><div className={styles.title}><span><BadgeOutlined /></span><div><b>{item.name}</b><small>{item.description}</small></div></div></td><td><div className={styles.roles}>{assignedRoles.length ? assignedRoles.map((role) => <span key={role.id}>{role.name}</span>) : <small>Rol atanmamış</small>}</div></td><td><span className={styles.users}><GroupsOutlined />{item.userCount} kullanıcı</span></td><td><span className={`${styles.status} ${styles.active}`}><i />Aktif</span></td><td><ManagementActions><EditAction label="Unvanı düzenle" onClick={() => setEditTarget(item)} /><DeleteAction label="Unvanı sil" onClick={() => archiveJobTitle(item)} /><DetailsAction label="Unvan detayları" onClick={() => setDetailsTarget(item)} /></ManagementActions></td></tr>;
       })}</tbody></table></div>
     </section>
   </main></div>
   <JobTitleFormDialog open={formOpen || Boolean(editTarget)} jobTitle={editTarget} roles={roles} onClose={() => { if (!saving) { setFormOpen(false); setEditTarget(null); } }} onSave={saveJobTitle} />
-  <JobTitleStatusDialog jobTitle={statusTarget} onClose={() => setStatusTarget(null)} onConfirm={toggleStatus} />
   <JobTitleDetailsDialog jobTitle={detailsTarget} roles={roles} onClose={() => setDetailsTarget(null)} onEdit={() => { setEditTarget(detailsTarget); setDetailsTarget(null); }} />
   </div>;
 }
