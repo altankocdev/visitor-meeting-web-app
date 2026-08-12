@@ -5,6 +5,12 @@ function endpointFor(isPlatformAdmin, exportFile = false) {
   return exportFile ? `${base}/export` : base;
 }
 
+function getDownloadFilename(disposition) {
+  const encoded = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  if (encoded) return decodeURIComponent(encoded);
+  return disposition.match(/filename="?([^";]+)"?/i)?.[1] ?? "denetim-kayitlari.xlsx";
+}
+
 export const auditRepository = {
   async list({ isPlatformAdmin = false, ...params } = {}) {
     return unwrapApiResponse(await apiClient.get(endpointFor(isPlatformAdmin), { params }));
@@ -15,8 +21,11 @@ export const auditRepository = {
       params,
       responseType: "blob",
     });
+    if (!(response.data instanceof Blob) || response.data.size === 0) {
+      throw new Error("Denetim kaydı dosyası boş döndü.");
+    }
+
     const disposition = response.headers["content-disposition"] ?? "";
-    const filename = disposition.match(/filename="?([^";]+)"?/i)?.[1] ?? "audit-logs.xlsx";
-    return { blob: response.data, filename };
+    return { blob: response.data, filename: getDownloadFilename(disposition) };
   },
 };

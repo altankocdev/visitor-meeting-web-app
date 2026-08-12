@@ -160,22 +160,22 @@ export function SuperAdminDashboardPage() {
             <form onSubmit={handleSubmit(createCompany)}>
               <h3>Şirket bilgileri</h3>
               <div className={styles.formGrid}>
-                <label>Şirket adı<input {...register("name", { required: "Şirket adı zorunludur." })} />{errors.name && <i>{errors.name.message}</i>}</label>
-                <label>Şirket adresi (slug)<input {...register("slug", { required: "Slug zorunludur.", pattern: { value: /^[a-z0-9-]+$/, message: "Küçük harf, rakam ve tire kullanın." } })} />{errors.slug && <i>{errors.slug.message}</i>}</label>
-                <label>İletişim e-postası<input type="email" {...register("contactEmail", { required: "E-posta zorunludur." })} />{errors.contactEmail && <i>{errors.contactEmail.message}</i>}</label>
-                <label>Telefon<input {...register("contactPhone")} /></label>
-                <label>Sektör<input {...register("industry")} /></label>
-                <label>Vergi numarası<input {...register("taxNumber")} /></label>
-                <label className={styles.full}>Adres<input {...register("address")} /></label>
-                <label className={styles.full}>Açıklama<textarea rows="2" {...register("description")} /></label>
+                <label>Şirket adı<input maxLength={150} {...register("name", { required: "Şirket adı zorunludur.", maxLength: { value: 150, message: "Şirket adı en fazla 150 karakter olabilir." } })} />{errors.name && <i>{errors.name.message}</i>}</label>
+                <label>Şirket adresi (slug)<input maxLength={100} {...register("slug", { required: "Slug zorunludur.", maxLength: { value: 100, message: "Slug en fazla 100 karakter olabilir." }, pattern: { value: /^[a-z0-9-]+$/, message: "Küçük harf, rakam ve tire kullanın." } })} />{errors.slug && <i>{errors.slug.message}</i>}</label>
+                <label>İletişim e-postası<input type="email" maxLength={150} {...register("contactEmail", { required: "E-posta zorunludur.", maxLength: { value: 150, message: "E-posta en fazla 150 karakter olabilir." } })} />{errors.contactEmail && <i>{errors.contactEmail.message}</i>}</label>
+                <label>Telefon<input maxLength={20} {...register("contactPhone")} /></label>
+                <label>Sektör<input maxLength={100} {...register("industry")} /></label>
+                <label>Vergi numarası<input maxLength={20} {...register("taxNumber")} /></label>
+                <label className={styles.full}>Adres<input maxLength={500} {...register("address")} /></label>
+                <label className={styles.full}>Açıklama<textarea rows="2" maxLength={1000} {...register("description")} /></label>
               </div>
               <h3>İlk şirket sahibi</h3>
               <div className={styles.formGrid}>
-                <label>Ad<input {...register("ownerFirstName", { required: "Ad zorunludur." })} />{errors.ownerFirstName && <i>{errors.ownerFirstName.message}</i>}</label>
-                <label>Soyad<input {...register("ownerLastName", { required: "Soyad zorunludur." })} />{errors.ownerLastName && <i>{errors.ownerLastName.message}</i>}</label>
-                <label>Kullanıcı adı<input {...register("ownerUsername", { required: "Kullanıcı adı zorunludur." })} />{errors.ownerUsername && <i>{errors.ownerUsername.message}</i>}</label>
-                <label>E-posta<input type="email" {...register("ownerEmail", { required: "E-posta zorunludur." })} />{errors.ownerEmail && <i>{errors.ownerEmail.message}</i>}</label>
-                <label className={styles.full}>Geçici şifre<input type="password" {...register("ownerPassword", { required: "Şifre zorunludur.", minLength: { value: 8, message: "En az 8 karakter olmalıdır." } })} />{errors.ownerPassword && <i>{errors.ownerPassword.message}</i>}</label>
+                <label>Ad<input maxLength={100} {...register("ownerFirstName", { required: "Ad zorunludur.", maxLength: { value: 100, message: "Ad en fazla 100 karakter olabilir." } })} />{errors.ownerFirstName && <i>{errors.ownerFirstName.message}</i>}</label>
+                <label>Soyad<input maxLength={100} {...register("ownerLastName", { required: "Soyad zorunludur.", maxLength: { value: 100, message: "Soyad en fazla 100 karakter olabilir." } })} />{errors.ownerLastName && <i>{errors.ownerLastName.message}</i>}</label>
+                <label>Kullanıcı adı<input maxLength={50} {...register("ownerUsername", { required: "Kullanıcı adı zorunludur.", maxLength: { value: 50, message: "Kullanıcı adı en fazla 50 karakter olabilir." } })} />{errors.ownerUsername && <i>{errors.ownerUsername.message}</i>}</label>
+                <label>E-posta<input type="email" maxLength={150} {...register("ownerEmail", { required: "E-posta zorunludur.", maxLength: { value: 150, message: "E-posta en fazla 150 karakter olabilir." } })} />{errors.ownerEmail && <i>{errors.ownerEmail.message}</i>}</label>
+                <label className={styles.full}>Geçici şifre<input type="password" minLength={8} maxLength={100} {...register("ownerPassword", { required: "Şifre zorunludur.", minLength: { value: 8, message: "En az 8 karakter olmalıdır." }, maxLength: { value: 100, message: "Şifre en fazla 100 karakter olabilir." } })} />{errors.ownerPassword && <i>{errors.ownerPassword.message}</i>}</label>
               </div>
               <footer>
                 <button type="button" disabled={saving} onClick={() => setDialogOpen(false)}>Vazgeç</button>
