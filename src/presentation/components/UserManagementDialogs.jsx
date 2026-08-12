@@ -19,7 +19,7 @@ export function EditUserDialog({ companyRoles, departments, jobTitles, onClose, 
   useEffect(() => {
     if (user) reset({
       firstName: user.firstName, lastName: user.lastName, email: user.email, username: user.username,
-      department: user.department, jobTitle: user.jobTitle, roles: user.roles,
+      departmentId: user.departmentId ?? "", jobTitleId: user.jobTitleId ?? "", roleIds: user.roleIds ?? [],
     });
   }, [reset, user]);
   if (!user) return null;
@@ -32,9 +32,9 @@ export function EditUserDialog({ companyRoles, departments, jobTitles, onClose, 
           <label>Soyad<input {...register("lastName", { required: "Soyad zorunludur." })} />{errors.lastName && <i>{errors.lastName.message}</i>}</label>
           <label className={styles.full}>Kurumsal e-posta<input type="email" {...register("email", { required: "E-posta zorunludur." })} /></label>
           <label>Kullanıcı adı<input disabled {...register("username")} /><em>Kullanıcı adı değiştirilemez.</em></label>
-          <label>Departman<select {...register("department")}>{departments.map((item) => <option key={item.id}>{item.name}</option>)}</select></label>
-          <label>Unvan<select {...register("jobTitle")}><option>Belirtilmedi</option>{jobTitles.map((item) => <option key={item.id}>{item.name}</option>)}</select></label>
-          <fieldset className={styles.full}><legend>Atanmış roller</legend><div className={styles.roleOptions}>{companyRoles.map((role) => <label key={role.id}><input type="checkbox" value={role.name} {...register("roles", { required: true })} /><span>{role.name}</span></label>)}</div>{errors.roles && <i>En az bir rol seçmelisiniz.</i>}</fieldset>
+          <label>Departman<select {...register("departmentId")}><option value="">Belirtilmedi</option>{departments.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          <label>Unvan<select {...register("jobTitleId")}><option value="">Belirtilmedi</option>{jobTitles.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          <fieldset className={styles.full}><legend>Atanmış roller</legend><div className={styles.roleOptions}>{companyRoles.map((role) => <label key={role.id}><input type="checkbox" value={role.id} {...register("roleIds", { required: !user.owner })} /><span>{role.name}</span></label>)}</div>{errors.roleIds && <i>En az bir rol seçmelisiniz.</i>}</fieldset>
         </div>
         <footer><button type="button" onClick={onClose}>Vazgeç</button><button className={styles.primary} type="submit"><SaveOutlined /> Değişiklikleri kaydet</button></footer>
       </form>

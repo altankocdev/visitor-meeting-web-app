@@ -117,7 +117,7 @@ export function SuperAdminDashboardPage() {
           </section>
           <section className={styles.grid}>
             <article className={styles.panel}>
-              <header className={styles.panelHeader}><div><h2>Şirketler</h2><p>Backend’de kayıtlı şirketler.</p></div></header>
+              <header className={styles.panelHeader}><div><h2>Şirketler</h2></div></header>
               <div className={styles.tableWrap}>
                 <table>
                   <thead><tr><th>ŞİRKET</th><th>İLETİŞİM</th><th>SEKTÖR</th><th>DURUM</th></tr></thead>

@@ -1,10 +1,12 @@
-import { AddRounded, EditOutlined, GroupsOutlined, LockOutlined, MoreHorizRounded, SearchRounded, ShieldOutlined, VerifiedUserOutlined } from "@mui/icons-material";
+import { AddRounded, EditOutlined, GroupsOutlined, LockOutlined, SearchRounded, ShieldOutlined, VerifiedUserOutlined } from "@mui/icons-material";
 import { useEffect, useMemo, useState } from "react";
 import { getApiErrorMessage } from "../../infrastructure/api/apiError";
 import { organizationRepository } from "../../infrastructure/repositories/organizationRepository";
 import { useAuth } from "../auth/AuthContext";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
+import { DeleteAction, DetailsAction, EditAction, ManagementActions } from "../components/ManagementActions";
+import { AppNotice } from "../components/AppNotice";
 import { RoleDetailsDialog, RoleDialog } from "../components/RoleDialog";
 import styles from "./RolesPage.module.css";
 
@@ -16,6 +18,7 @@ const DEFAULT_ROLE_NAMES = new Set([
   "Departman Asistanı",
   "Güvenlik",
   "Çalışan",
+  "Şirket Yöneticisi",
 ]);
 
 function mapRole(role) {
@@ -51,7 +54,7 @@ export function RolesPage() {
     organizationRepository.roles(companyId, { size: 200 })
       .then((page) => {
         if (!mounted) return;
-        setRoles((page.content ?? []).map(mapRole));
+        setRoles((page.content ?? []).map(mapRole).filter((item) => item.active));
         setApiError("");
       })
       .catch((error) => {
@@ -82,13 +85,23 @@ export function RolesPage() {
     }
   };
 
+  const archiveRole = async (role) => {
+    if (!window.confirm(`${role.name} rolünü silmek istediğinize emin misiniz? Kullanıcıların geçmiş rol kayıtları korunacaktır.`)) return;
+    try {
+      await organizationRepository.archiveRole(companyId, role.id);
+      setRoles((current) => current.filter((item) => item.id !== role.id));
+    } catch (error) {
+      setApiError(getApiErrorMessage(error, "Rol silinemedi."));
+    }
+  };
+
   return (
     <div className={styles.shell}>
       <AdminSidebar session={session} />
       <div className={styles.main}>
         <AdminTopbar />
         <main className={styles.content}>
-          {apiError ? <p role="alert">{apiError}</p> : null}
+          <AppNotice notice={apiError} onClose={() => setApiError("")} />
           <header className={styles.pageHead}><div><small>ERİŞİM YÖNETİMİ</small><h1>Roller ve yetkiler</h1><p>Şirket rollerini oluşturun ve kullanıcıların erişebileceği işlemleri belirleyin.</p></div><button className={styles.createButton} type="button" onClick={() => setFormOpen(true)}><AddRounded /> Yeni rol</button></header>
           <section className={styles.stats}>
             <article><span className={styles.blue}><VerifiedUserOutlined /></span><div><small>Toplam rol</small><strong>{roles.length}</strong><p>Aktif rol tanımı</p></div></article>
@@ -105,7 +118,7 @@ export function RolesPage() {
                 <td><span className={role.systemRole ? styles.system : styles.custom}>{role.systemRole ? <LockOutlined /> : <EditOutlined />}{role.systemRole ? "Sistem rolü" : "Özel rol"}</span></td>
                 <td><b>{role.permissionIds.length} yetki</b><small>{permissionGroups.filter((group) => group.permissions.some((item) => role.permissionIds.includes(item.id))).length} kategori</small></td>
                 <td><span className={styles.users}><GroupsOutlined />{role.userCount} kullanıcı</span></td>
-                <td><div className={styles.actions}><button type="button" title="Rolü düzenle" onClick={() => setEditTarget(role)}><EditOutlined /></button><button type="button" title="Rol detayları" onClick={() => setDetailsTarget(role)}><MoreHorizRounded /></button></div></td>
+                <td><ManagementActions><EditAction label="Rolü düzenle" onClick={() => setEditTarget(role)} />{!role.systemRole && <DeleteAction label="Rolü sil" onClick={() => archiveRole(role)} />}<DetailsAction label="Rol detayları" onClick={() => setDetailsTarget(role)} /></ManagementActions></td>
               </tr>
             ))}</tbody></table></div>
           </section>

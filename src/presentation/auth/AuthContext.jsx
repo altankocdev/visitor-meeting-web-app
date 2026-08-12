@@ -46,6 +46,8 @@ function mapSession(payload, isPlatformAdmin) {
       id: payload.userId,
       companyId: payload.companyId,
       companyName: payload.companyName,
+      jobTitle: payload.jobTitleId ? { id: payload.jobTitleId, name: payload.jobTitleName } : null,
+      departmentName: payload.departmentName,
       firstName: payload.firstName,
       lastName: payload.lastName,
       email: payload.email,

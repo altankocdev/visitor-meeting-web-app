@@ -35,7 +35,6 @@ const TIME_SLOTS = [
   { start: "15:00", end: "16:00", label: "15:00 - 16:00" },
   { start: "16:00", end: "17:00", label: "16:00 - 17:00" },
   { start: "17:00", end: "18:00", label: "17:00 - 18:00" },
-  { start: "18:00", end: "19:00", label: "18:00 - 19:00" },
 ];
 
 function timeToMinutes(timeStr) {

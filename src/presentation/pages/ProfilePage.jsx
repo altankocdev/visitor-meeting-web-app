@@ -1,5 +1,6 @@
 import {
   AlternateEmailRounded,
+  ApartmentRounded,
   BadgeOutlined,
   BusinessCenterOutlined,
   CheckCircleRounded,
@@ -7,30 +8,28 @@ import {
   SaveRounded,
   ShieldOutlined,
 } from "@mui/icons-material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 import styles from "./ProfilePage.module.css";
 import { useAuth } from "../auth/AuthContext";
-
-const jobTitles = [
-  { id: "", name: "Pozisyon seçilmedi" },
-  { id: "software-developer", name: "Yazılım Geliştirici" },
-  { id: "product-specialist", name: "Ürün Uzmanı" },
-  { id: "project-manager", name: "Proje Yöneticisi" },
-  { id: "hr-specialist", name: "İnsan Kaynakları Uzmanı" },
-];
+import { authRepository } from "../../infrastructure/repositories/authRepository";
+import { getApiErrorMessage } from "../../infrastructure/api/apiError";
 
 export function ProfilePage() {
   const [saved, setSaved] = useState(false);
-  const { session } = useAuth();
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [jobTitles, setJobTitles] = useState([]);
+  const { session, refreshSession } = useAuth();
   const user = session.user;
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ")
     || `@${user.username}`;
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isDirty },
   } = useForm({
     defaultValues: {
@@ -38,12 +37,43 @@ export function ProfilePage() {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      jobTitle: user.jobTitle?.id ?? "",
+      jobTitleId: user.jobTitle?.id ? String(user.jobTitle.id) : "",
     },
   });
 
-  const onSubmit = (data) => {
-    setSaved(true);
+  useEffect(() => {
+    let active = true;
+    authRepository.profileJobTitles()
+      .then((items) => { if (active) setJobTitles(items ?? []); })
+      .catch((error) => { if (active) setSaveError(getApiErrorMessage(error, "Pozisyonlar yüklenemedi.")); });
+    return () => { active = false; };
+  }, []);
+
+  const onSubmit = async (data) => {
+    setSaving(true);
+    setSaved(false);
+    setSaveError("");
+    try {
+      const updated = await authRepository.updateProfile({
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        email: data.email.trim(),
+        jobTitleId: data.jobTitleId ? Number(data.jobTitleId) : null,
+      });
+      await refreshSession();
+      reset({
+        username: updated.username,
+        firstName: updated.firstName,
+        lastName: updated.lastName,
+        email: updated.email,
+        jobTitleId: updated.jobTitleId ? String(updated.jobTitleId) : "",
+      });
+      setSaved(true);
+    } catch (error) {
+      setSaveError(getApiErrorMessage(error, "Profil bilgileri güncellenemedi."));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -64,6 +94,7 @@ export function ProfilePage() {
             {saved && (
               <span className={styles.saved}><CheckCircleRounded />Değişiklikler kaydedildi</span>
             )}
+            {saveError && <span className={styles.saveError} role="alert">{saveError}</span>}
           </div>
 
           <div className={styles.layout}>
@@ -82,13 +113,14 @@ export function ProfilePage() {
 
               <dl>
                 <div><dt>Şirket</dt><dd>{user.companyName}</dd></div>
+                <div><dt>Departman</dt><dd>{user.departmentName || "Belirtilmedi"}</dd></div>
                 <div><dt>Pozisyon</dt><dd>{user.jobTitle?.name || "Belirtilmedi"}</dd></div>
                 <div><dt>E-posta</dt><dd>{user.email || "Belirtilmedi"}</dd></div>
                 <div><dt>Kullanıcı adı</dt><dd>@{user.username}</dd></div>
               </dl>
 
               <p className={styles.summaryNote}>
-                Rol ve şirket bilgileri yalnızca yetkili yöneticiler tarafından değiştirilebilir.
+                Rol, şirket ve departman bilgileri yalnızca yetkili yöneticiler tarafından değiştirilebilir.
               </p>
             </aside>
 
@@ -170,21 +202,33 @@ export function ProfilePage() {
                 </div>
 
                 <div className={styles.field}>
+                  <label htmlFor="profileDepartment">Departman <small>Yönetici tarafından belirlenir</small></label>
+                  <div className={`${styles.input} ${styles.readonly}`}>
+                    <ApartmentRounded />
+                    <input
+                      id="profileDepartment"
+                      readOnly
+                      value={user.departmentName || "Departman atanmadı"}
+                    />
+                    <small>Değiştirilemez</small>
+                  </div>
+                </div>
+
+                <div className={styles.field}>
                   <label htmlFor="profileJobTitle">Pozisyon <small>İsteğe bağlı</small></label>
                   <div className={`${styles.input} ${styles.select}`}>
                     <BusinessCenterOutlined />
-                    <select id="profileJobTitle" {...register("jobTitle")}>
-                      {jobTitles.map((jobTitle) => (
-                        <option key={jobTitle.id || "empty"} value={jobTitle.id}>{jobTitle.name}</option>
-                      ))}
+                    <select id="profileJobTitle" {...register("jobTitleId")}>
+                      <option value="">Pozisyon seçilmedi</option>
+                      {jobTitles.map((jobTitle) => <option key={jobTitle.id} value={jobTitle.id}>{jobTitle.name}</option>)}
                     </select>
                   </div>
                 </div>
 
                 <div className={styles.actions}>
                   <p>Değişiklikler yalnızca profil bilgilerinizi etkiler.</p>
-                  <button type="submit" disabled={!isDirty && !saved}>
-                    <SaveRounded />Değişiklikleri kaydet
+                  <button type="submit" disabled={!isDirty || saving}>
+                    <SaveRounded />{saving ? "Kaydediliyor..." : "Değişiklikleri kaydet"}
                   </button>
                 </div>
               </form>

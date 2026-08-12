@@ -1,6 +1,5 @@
 import {
   AdminPanelSettingsRounded,
-  HelpOutlineRounded,
   LogoutRounded,
 } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -54,7 +53,7 @@ export function Sidebar({ session: providedSession }) {
               key={label}
               type="button"
               onClick={() => path && navigate(path)}
-              title={path ? label : `${label} sayfası yakında`}
+              title={label}
             >
               <Icon />
               <span className={styles.buttonLabel}>{label}</span>
@@ -80,11 +79,6 @@ export function Sidebar({ session: providedSession }) {
             Şirket yönetimi
           </button>
         ) : null}
-        <button className={styles.button} type="button">
-          <HelpOutlineRounded />
-          Yardım merkezi
-        </button>
-
         <button
           className={styles.button}
           type="button"

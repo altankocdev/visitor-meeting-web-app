@@ -11,13 +11,15 @@ import {
 import dayjs from "dayjs";
 import "dayjs/locale/tr";
 import { useEffect, useMemo, useState } from "react";
-import { managementSession } from "../../domain/auth/managementSession";
 import { hasPermission, permissions } from "../../domain/auth/permissions";
+import { getApiErrorMessage } from "../../infrastructure/api/apiError";
 import { notificationRepository } from "../../infrastructure/repositories/notificationRepository";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
+import { AppNotice } from "../components/AppNotice";
 import styles from "./ManagementNotificationsPage.module.css";
 import { NOTIFICATIONS_UPDATED_EVENT } from "../hooks/useUnreadNotificationCount";
+import { useAuth } from "../auth/AuthContext";
 
 const categoryMeta = {
   RESERVATION: { label: "Rezervasyon", icon: EventOutlined, tone: "blue" },
@@ -25,19 +27,6 @@ const categoryMeta = {
   ROOM: { label: "Oda", icon: MeetingRoomOutlined, tone: "orange" },
   SECURITY: { label: "Güvenlik", icon: SecurityOutlined, tone: "gray" },
 };
-
-const demoNotifications = [
-  {
-    id: "demo-1",
-    recipientUserId: 1,
-    title: "Yeni toplantı rezervasyonu",
-    message: "Toplantı odası için yeni rezervasyon talebi oluşturuldu.",
-    reservationId: 1,
-    category: "RESERVATION",
-    read: false,
-    createdAt: new Date().toISOString(),
-  },
-];
 
 const notificationPreferences = [
   {
@@ -71,8 +60,7 @@ const getCompanyId = (session) =>
   session?.companyId ||
   session?.company?.id ||
   session?.user?.companyId ||
-  session?.user?.company?.id ||
-  1;
+  session?.user?.company?.id;
 
 const normalizeNotification = (item) => ({
   ...item,
@@ -86,7 +74,8 @@ const getPageItems = (response) => {
   return [];
 };
 
-export function ManagementNotificationsPage({ session = managementSession }) {
+export function ManagementNotificationsPage() {
+  const { session } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -101,7 +90,7 @@ export function ManagementNotificationsPage({ session = managementSession }) {
   });
 
   const canManageSettings = hasPermission(
-    session.permissions,
+    session?.permissions ?? [],
     permissions.NOTIFICATION_MANAGE_SETTINGS,
   );
 
@@ -134,12 +123,12 @@ export function ManagementNotificationsPage({ session = managementSession }) {
         const notifications = getPageItems(response).map(normalizeNotification);
 
         if (active) {
-          setItems(notifications.length > 0 ? notifications : demoNotifications);
+          setItems(notifications);
         }
-      } catch {
+      } catch (requestError) {
         if (active) {
-          setItems(demoNotifications);
-          setError("");
+          setItems([]);
+          setError(getApiErrorMessage(requestError, "Bildirimler yüklenemedi."));
         }
       } finally {
         if (active) setLoading(false);
@@ -162,8 +151,6 @@ export function ManagementNotificationsPage({ session = managementSession }) {
       ),
     );
 
-    if (String(item.id).startsWith("demo-")) return;
-
     try {
       await notificationRepository.markAsRead(companyId, item.id);
       window.dispatchEvent(new Event(NOTIFICATIONS_UPDATED_EVENT));
@@ -182,9 +169,9 @@ export function ManagementNotificationsPage({ session = managementSession }) {
     setItems((current) => current.map((item) => ({ ...item, read: true })));
 
     await Promise.allSettled(
-      unreadItems
-        .filter((item) => !String(item.id).startsWith("demo-"))
-        .map((item) => notificationRepository.markAsRead(companyId, item.id)),
+      unreadItems.map((item) =>
+        notificationRepository.markAsRead(companyId, item.id),
+      ),
     );
     window.dispatchEvent(new Event(NOTIFICATIONS_UPDATED_EVENT));
   };
@@ -289,7 +276,7 @@ export function ManagementNotificationsPage({ session = managementSession }) {
 
             {loading && <div className={styles.empty}>Bildirimler yükleniyor.</div>}
 
-            {error && !loading && <div className={styles.empty}>{error}</div>}
+            <AppNotice notice={!loading ? error : ""} onClose={() => setError("")} />
 
             {!loading && !error && visible.length === 0 && (
               <div className={styles.empty}>Gösterilecek bildirim bulunmuyor.</div>

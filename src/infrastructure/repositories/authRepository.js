@@ -32,6 +32,16 @@ export const authRepository = {
     return { data: unwrapApiResponse(response), isPlatformAdmin };
   },
 
+  async updateProfile(data) {
+    const response = await apiClient.put("/auth/me", data);
+    return unwrapApiResponse(response);
+  },
+
+  async profileJobTitles() {
+    const response = await apiClient.get("/auth/me/job-titles");
+    return unwrapApiResponse(response);
+  },
+
   async changePassword(currentPassword, newPassword) {
     const response = await apiClient.post("/auth/change-password", { currentPassword, newPassword });
     const tokens = unwrapApiResponse(response);
