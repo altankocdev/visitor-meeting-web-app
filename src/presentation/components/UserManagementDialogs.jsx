@@ -28,10 +28,10 @@ export function EditUserDialog({ companyRoles, departments, jobTitles, onClose, 
     <DialogShell wide eyebrow="KULLANICI DÜZENLEME" icon={EditOutlined} onClose={onClose} title={`${user.firstName} ${user.lastName}`} subtitle="Kullanıcının profil ve organizasyon bilgilerini güncelleyin.">
       <form className={styles.form} onSubmit={handleSubmit(onSave)}>
         <div className={styles.grid}>
-          <label>Ad<input {...register("firstName", { required: "Ad zorunludur." })} />{errors.firstName && <i>{errors.firstName.message}</i>}</label>
-          <label>Soyad<input {...register("lastName", { required: "Soyad zorunludur." })} />{errors.lastName && <i>{errors.lastName.message}</i>}</label>
-          <label className={styles.full}>Kurumsal e-posta<input type="email" {...register("email", { required: "E-posta zorunludur." })} /></label>
-          <label>Kullanıcı adı<input disabled {...register("username")} /><em>Kullanıcı adı değiştirilemez.</em></label>
+          <label>Ad<input maxLength={100} {...register("firstName", { required: "Ad zorunludur.", maxLength: { value: 100, message: "Ad en fazla 100 karakter olabilir." } })} />{errors.firstName && <i>{errors.firstName.message}</i>}</label>
+          <label>Soyad<input maxLength={100} {...register("lastName", { required: "Soyad zorunludur.", maxLength: { value: 100, message: "Soyad en fazla 100 karakter olabilir." } })} />{errors.lastName && <i>{errors.lastName.message}</i>}</label>
+          <label className={styles.full}>Kurumsal e-posta<input type="email" maxLength={150} {...register("email", { required: "E-posta zorunludur.", maxLength: { value: 150, message: "E-posta en fazla 150 karakter olabilir." } })} />{errors.email && <i>{errors.email.message}</i>}</label>
+          <label>Kullanıcı adı<input disabled maxLength={50} {...register("username")} /><em>Kullanıcı adı değiştirilemez.</em></label>
           <label>Departman<select {...register("departmentId")}><option value="">Belirtilmedi</option>{departments.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
           <label>Unvan<select {...register("jobTitleId")}><option value="">Belirtilmedi</option>{jobTitles.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
           <fieldset className={styles.full}><legend>Atanmış roller</legend><div className={styles.roleOptions}>{companyRoles.map((role) => <label key={role.id}><input type="checkbox" value={role.id} {...register("roleIds", { required: !user.owner })} /><span>{role.name}</span></label>)}</div>{errors.roleIds && <i>En az bir rol seçmelisiniz.</i>}</fieldset>

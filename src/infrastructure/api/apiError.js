@@ -12,6 +12,24 @@ const apiErrorMessages = {
   ACCESS_DENIED: "Bu işlemi yapmaya yetkiniz bulunmuyor.",
   UNAUTHORIZED: "Oturumunuz sona erdi. Lütfen tekrar giriş yapın.",
   VALIDATION_ERROR: "Girdiğiniz bilgileri kontrol edin.",
+  VALIDATION_FAILED: "Girdiğiniz bilgileri kontrol edin.",
+};
+
+const fieldLabels = {
+  firstName: "Ad",
+  lastName: "Soyad",
+  email: "E-posta",
+  username: "Kullanıcı adı",
+  password: "Şifre",
+  name: "Ad",
+  title: "Başlık",
+  description: "Açıklama",
+  slug: "Şirket adresi",
+  contactEmail: "İletişim e-postası",
+  contactPhone: "Telefon",
+  taxNumber: "Vergi numarası",
+  address: "Adres",
+  industry: "Sektör",
 };
 
 const englishMessagePatterns = [
@@ -41,13 +59,13 @@ export function getApiErrorMessage(error, fallback = "İşlem tamamlanamadı. L�
   const body = error?.response?.data;
   const code = body?.code || body?.errorCode || body?.error;
 
-  if (code && apiErrorMessages[code]) return apiErrorMessages[code];
-
   if (body?.fieldErrors) {
-    const messages = Object.values(body.fieldErrors)
-      .map((message) => translateMessage(message, "Geçersiz bir alan değeri girdiniz."));
+    const messages = Object.entries(body.fieldErrors)
+      .map(([field, message]) => `${fieldLabels[field] || field}: ${translateMessage(message, "Geçersiz bir değer girdiniz.")}`);
     return messages.join(" ");
   }
+
+  if (code && apiErrorMessages[code]) return apiErrorMessages[code];
 
   return translateMessage(body?.message || error?.message, fallback);
 }

@@ -6,7 +6,7 @@ import { organizationRepository } from "../../infrastructure/repositories/organi
 import { useAuth } from "../auth/AuthContext";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
-import { EditAction, ManagementActions, StatusAction } from "../components/ManagementActions";
+import { DeleteAction, EditAction, ManagementActions, StatusAction } from "../components/ManagementActions";
 import { FeatureFormDialog, ResourceStatusDialog, RoomFormDialog } from "../components/RoomFeatureDialogs";
 import styles from "./RoomManagementPage.module.css";
 
@@ -130,13 +130,34 @@ export function RoomManagementPage() {
     }
   };
 
+  const deleteFeature = async (feature) => {
+    const roomCount = rooms.filter((room) => room.featureIds.includes(feature.id)).length;
+    const usageMessage = roomCount > 0
+      ? ` Bu özellik ${roomCount} odadan kaldırılacaktır.`
+      : "";
+
+    if (!window.confirm(`${feature.name} özelliğini silmek istediğinize emin misiniz?${usageMessage}`)) return;
+
+    try {
+      await organizationRepository.deactivateFeature(session.user.companyId, feature.id);
+      setFeatures((current) => current.filter((item) => item.id !== feature.id));
+      setRooms((current) => current.map((room) => ({
+        ...room,
+        featureIds: room.featureIds.filter((featureId) => featureId !== feature.id),
+      })));
+      setNotice({ severity: "success", text: "Özellik katalogdan silindi." });
+    } catch (error) {
+      setNotice({ severity: "error", text: getApiErrorMessage(error, "Özellik silinemedi.") });
+    }
+  };
+
   return <div className={styles.shell}><AdminSidebar session={session} /><div className={styles.main}><AdminTopbar /><main className={styles.content}>
     <header className={styles.pageHead}><div><small>KAYNAK YÖNETİMİ</small><h1>Odalar ve özellikler</h1><p>Toplantı odalarını, kapasitelerini ve kullanılabilir donanımları yönetin.</p></div><button className={styles.createButton} type="button" onClick={() => tab === "rooms" ? setRoomForm(true) : setFeatureForm(true)}><AddRounded />{tab === "rooms" ? "Yeni oda" : "Yeni özellik"}</button></header>
     <section className={styles.stats}><article><span className={styles.blue}><MeetingRoomOutlined /></span><div><small>Toplam oda</small><strong>{rooms.length}</strong><p>{rooms.filter((room) => room.active).length} aktif oda</p></div></article><article><span className={styles.green}><GroupsOutlined /></span><div><small>Toplam kapasite</small><strong>{rooms.filter((room) => room.active).reduce((sum, room) => sum + room.capacity, 0)}</strong><p>Aktif odalardaki koltuk</p></div></article><article><span className={styles.orange}><SettingsSuggestOutlined /></span><div><small>Özellik kataloğu</small><strong>{features.length}</strong><p>{features.filter((item) => item.active).length} kullanılabilir özellik</p></div></article></section>
     <section className={styles.panel}>
       <div className={styles.toolbar}><div className={styles.tabs}><button className={tab === "rooms" ? styles.selected : ""} onClick={() => { setTab("rooms"); setSearch(""); }}>Toplantı odaları <span>{rooms.length}</span></button><button className={tab === "features" ? styles.selected : ""} onClick={() => { setTab("features"); setSearch(""); }}>Özellik kataloğu <span>{features.length}</span></button></div><label className={styles.search}><SearchRounded /><input value={search} placeholder={tab === "rooms" ? "Oda adı veya konum ara..." : "Özellik ara..."} onChange={(event) => setSearch(event.target.value)} /></label></div>
       {tab === "rooms" ? <div className={styles.roomGrid}>{filteredRooms.map((room) => <article className={styles.roomCard} key={room.id}><header><span><MeetingRoomOutlined /></span><div><h3>{room.name}</h3><p><LocationOnOutlined />{room.location}</p></div><b className={room.active ? styles.active : styles.passive}>{room.active ? "Aktif" : "Pasif"}</b></header><p className={styles.description}>{room.description}</p><div className={styles.capacity}><GroupsOutlined /><span><b>{room.capacity} kişi</b><small>Kapasite</small></span></div><div className={styles.featureList}>{features.filter((feature) => room.featureIds.includes(feature.id)).map((feature) => <span key={feature.id}>{feature.name}</span>)}</div><footer><button type="button" onClick={() => setEditRoom(room)}><EditOutlined />Düzenle</button><button className={styles.statusButton} type="button" onClick={() => setStatusTarget({ type: "room", item: room })} aria-label={room.active ? `${room.name} odasını pasifleştir` : `${room.name} odasını aktifleştir`}><span className={`${styles.switchTrack} ${room.active ? styles.switchOn : ""}`} aria-hidden="true"><i /></span>{room.active ? "Pasifleştir" : "Aktifleştir"}</button><button className={styles.deleteButton} type="button" onClick={() => archiveRoom(room)}><DeleteOutlineRounded />Sil</button></footer></article>)}</div>
-      : <div className={styles.featureTable}><table><thead><tr><th>ÖZELLİK</th><th>AÇIKLAMA</th><th>KULLANILDIĞI ODA</th><th>DURUM</th><th>İŞLEMLER</th></tr></thead><tbody>{filteredFeatures.map((feature) => <tr key={feature.id}><td><div className={styles.featureName}><span><SettingsSuggestOutlined /></span><b>{feature.name}</b></div></td><td>{feature.description}</td><td>{rooms.filter((room) => room.featureIds.includes(feature.id)).length} oda</td><td><span className={feature.active ? styles.active : styles.passive}>{feature.active ? "Aktif" : "Pasif"}</span></td><td><ManagementActions><EditAction label="Özelliği düzenle" onClick={() => setEditFeature(feature)} /><StatusAction active={feature.active} label={feature.active ? "Özelliği pasifleştir" : "Özelliği aktifleştir"} onClick={() => setStatusTarget({ type: "feature", item: feature })} /></ManagementActions></td></tr>)}</tbody></table></div>}
+      : <div className={styles.featureTable}><table><thead><tr><th>ÖZELLİK</th><th>AÇIKLAMA</th><th>KULLANILDIĞI ODA</th><th>DURUM</th><th>İŞLEMLER</th></tr></thead><tbody>{filteredFeatures.map((feature) => <tr key={feature.id}><td><div className={styles.featureName}><span><SettingsSuggestOutlined /></span><b>{feature.name}</b></div></td><td>{feature.description}</td><td>{rooms.filter((room) => room.featureIds.includes(feature.id)).length} oda</td><td><span className={feature.active ? styles.active : styles.passive}>{feature.active ? "Aktif" : "Pasif"}</span></td><td><ManagementActions><EditAction label="Özelliği düzenle" onClick={() => setEditFeature(feature)} /><StatusAction active={feature.active} label={feature.active ? "Özelliği pasifleştir" : "Özelliği aktifleştir"} onClick={() => setStatusTarget({ type: "feature", item: feature })} /><DeleteAction label="Özelliği sil" onClick={() => deleteFeature(feature)} /></ManagementActions></td></tr>)}</tbody></table></div>}
     </section>
   </main></div>
   <RoomFormDialog open={roomForm || Boolean(editRoom)} room={editRoom} features={features} onClose={() => { setRoomForm(false); setEditRoom(null); }} onSave={saveRoom} />

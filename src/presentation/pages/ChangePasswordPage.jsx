@@ -85,6 +85,7 @@ export function ChangePasswordPage() {
               id="currentPassword"
               type={showCurrentPassword ? "text" : "password"}
               autoComplete="current-password"
+              maxLength={100}
               placeholder="Size verilen geçici şifre"
               {...register("currentPassword", { required: "Geçici şifre zorunludur." })}
             />
@@ -105,9 +106,11 @@ export function ChangePasswordPage() {
               id="newPassword"
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
+              maxLength={100}
               placeholder="Yeni şifrenizi girin"
               {...register("newPassword", {
                 required: "Yeni şifre zorunludur.",
+                maxLength: { value: 100, message: "Şifre en fazla 100 karakter olabilir." },
                 pattern: {
                   value: passwordPattern,
                   message: "Şifre bütün güvenlik koşullarını sağlamalıdır.",
@@ -131,6 +134,7 @@ export function ChangePasswordPage() {
               id="confirmPassword"
               type={showConfirmation ? "text" : "password"}
               autoComplete="new-password"
+              maxLength={100}
               placeholder="Yeni şifrenizi tekrar girin"
               {...register("confirmPassword", {
                 required: "Şifre tekrarı zorunludur.",

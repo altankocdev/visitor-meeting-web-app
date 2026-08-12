@@ -274,9 +274,9 @@ export function BookingDialog({ open, onClose, rooms = [], onCreate }) {
           <Controller
             name="title"
             control={control}
-            rules={{ required: "Toplantı başlığı zorunludur." }}
+            rules={{ required: "Toplantı başlığı zorunludur.", maxLength: { value: 200, message: "Toplantı başlığı en fazla 200 karakter olabilir." } }}
             render={({ field }) => (
-              <TextField {...field} label="Toplantı başlığı" error={Boolean(errors.title)} helperText={errors.title?.message} fullWidth />
+              <TextField {...field} label="Toplantı başlığı" inputProps={{ maxLength: 200 }} error={Boolean(errors.title)} helperText={errors.title?.message || `${field.value?.length ?? 0}/200`} fullWidth />
             )}
           />
 
@@ -438,7 +438,8 @@ export function BookingDialog({ open, onClose, rooms = [], onCreate }) {
           <Controller
             name="description"
             control={control}
-            render={({ field }) => <TextField {...field} label="Açıklama (opsiyonel)" multiline rows={3} fullWidth />}
+            rules={{ maxLength: { value: 1000, message: "Açıklama en fazla 1000 karakter olabilir." } }}
+            render={({ field }) => <TextField {...field} label="Açıklama (opsiyonel)" multiline rows={3} inputProps={{ maxLength: 1000 }} error={Boolean(errors.description)} helperText={errors.description?.message || `${field.value?.length ?? 0}/1000`} fullWidth />}
           />
         </DialogContent>
 
