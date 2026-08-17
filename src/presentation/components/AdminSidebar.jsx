@@ -8,6 +8,7 @@ import { Brand } from "./Brand";
 import styles from "./AdminSidebar.module.css";
 import { useAuth } from "../auth/AuthContext";
 import { useUnreadNotificationCount } from "../hooks/useUnreadNotificationCount";
+import { hasPermission } from "../../domain/auth/permissions";
 
 export function AdminSidebar() {
   const navigate = useNavigate();
@@ -28,6 +29,14 @@ export function AdminSidebar() {
   ]
     .filter(Boolean)
     .join(" · ");
+  const navigationItems = superAdminNavigation.filter(({ platformAllowed, requiredAny = [] }) => {
+    if (session.isPlatformAdmin) return requiredAny.length === 0 || platformAllowed;
+    return (
+      session.user.owner
+      || requiredAny.length === 0
+      || requiredAny.some((permission) => hasPermission(session.permissions, permission))
+    );
+  });
 
   return (
     <aside className={styles.sidebar}>
@@ -50,7 +59,7 @@ export function AdminSidebar() {
       ) : null}
       <nav className={styles.nav} aria-label="Süper admin menüsü">
         <small>ŞİRKET YÖNETİMİ</small>
-        {superAdminNavigation.map(
+        {navigationItems.map(
           ({ badge, icon: Icon, label, path }, index) => {
             const resolvedPath =
               index === 0 && !session.isPlatformAdmin

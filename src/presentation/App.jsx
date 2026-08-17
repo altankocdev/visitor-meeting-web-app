@@ -20,6 +20,8 @@ import { SuperAdminLoginPage } from "./pages/SuperAdminLoginPage";
 import { SuperAdminDashboardPage } from "./pages/SuperAdminDashboardPage";
 import { UsersPage } from "./pages/UsersPage";
 import { ProtectedRoute } from "./routing/ProtectedRoute";
+import { PermissionRoute } from "./routing/PermissionRoute";
+import { permissions } from "../domain/auth/permissions";
 import { LoadingOverlay } from "./components/LoadingOverlay";
 import { useAuth } from "./auth/AuthContext";
 
@@ -44,24 +46,24 @@ export function App() {
             path="/management/dashboard"
             element={<CompanyOwnerDashboardPage />}
           />
-          <Route path="/management/users" element={<UsersPage />} />
-          <Route path="/management/departments" element={<DepartmentsPage />} />
-          <Route path="/management/roles" element={<RolesPage />} />
-          <Route path="/management/job-titles" element={<JobTitlesPage />} />
-          <Route path="/management/rooms" element={<RoomManagementPage />} />
+          <Route path="/management/users" element={<PermissionRoute requiredAny={[permissions.USER_VIEW_ALL]}><UsersPage /></PermissionRoute>} />
+          <Route path="/management/departments" element={<PermissionRoute requiredAny={[permissions.DEPARTMENT_VIEW]}><DepartmentsPage /></PermissionRoute>} />
+          <Route path="/management/roles" element={<PermissionRoute requiredAny={[permissions.ROLE_VIEW]}><RolesPage /></PermissionRoute>} />
+          <Route path="/management/job-titles" element={<PermissionRoute requiredAny={[permissions.JOB_TITLE_VIEW]}><JobTitlesPage /></PermissionRoute>} />
+          <Route path="/management/rooms" element={<PermissionRoute requiredAny={[permissions.ROOM_VIEW]}><RoomManagementPage /></PermissionRoute>} />
           <Route
             path="/management/reservations"
-            element={<AdminReservationsPage />}
+            element={<PermissionRoute requiredAny={[permissions.RESERVATION_VIEW_ALL]}><AdminReservationsPage /></PermissionRoute>}
           />
-          <Route path="/management/reports" element={<ReportsPage />} />
-          <Route path="/management/audit-logs" element={<AuditLogsPage />} />
+          <Route path="/management/reports" element={<PermissionRoute requiredAny={[permissions.REPORT_VIEW_ROOM_USAGE, permissions.REPORT_VIEW_RESERVATION_STATS, permissions.REPORT_VIEW_CANCELLATION_STATS]}><ReportsPage /></PermissionRoute>} />
+          <Route path="/management/audit-logs" element={<PermissionRoute requiredAny={[permissions.AUDIT_LOG_VIEW]} platformAllowed><AuditLogsPage /></PermissionRoute>} />
           <Route
             path="/management/notifications"
-            element={<ManagementNotificationsPage />}
+            element={<PermissionRoute requiredAny={[permissions.NOTIFICATION_VIEW]}><ManagementNotificationsPage /></PermissionRoute>}
           />
           <Route
             path="/management/company-settings"
-            element={<CompanySettingsPage />}
+            element={<PermissionRoute requiredAny={[permissions.COMPANY_VIEW]}><CompanySettingsPage /></PermissionRoute>}
           />
 
           <Route path="/dashboard" element={<DashboardPage />} />
